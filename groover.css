@@ -1,0 +1,131 @@
+body {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    background: url(icons/backgroundchecker.png);
+    background-size: 24px 24px;
+    background-repeat: repeat;
+}
+
+
+/* dialogs */
+
+.dialog {
+    font:16px arial;
+    color: #583333;
+    z-index: 2000;
+    background: aliceblue;
+    border: 1px black solid;  
+    text-overflow: ellipsis;
+    overflow-wrap: break-word;   
+}
+.frame {
+    position: absolute;
+    top:10%;
+    width: 60%;
+    text-align: center;
+    left: 20%;
+    font-size: large;
+    color: black;
+    padding: 10px;
+    display: block;
+    box-shadow: 8px 8px 4px rgba(0, 0, 0, 0.17);    
+}
+.cancel {
+    cursor:pointer;
+    width: 23%;
+    position: relative;
+    left: 27%;
+    top: 60%;
+    height: 10%; 
+}
+.cancel:hover {
+    background:#8Fc;
+}
+.ok {
+    cursor:pointer;
+    width: 23%;
+    position: relative;
+    left: -27%;
+    top: 60%;
+    height: 10%;    
+}
+.ok:hover {
+    background:#8Fc;
+}
+.okCenter {
+    cursor:pointer;
+    width: 23%;
+    position: relative;
+   
+}
+.okCenter:hover {
+    background:#8Fc;
+}
+.loadImage {
+    width: 40%
+}
+span.fileDetails {
+    font-size: small;
+    display: block;
+}
+div.imgContainer {
+    border:2px black solid;
+    display: block;
+   
+}
+
+/* dialogs end */
+
+
+/* Splash and backgrounds */
+.splash {
+    position: absolute;
+    z-index: -100;
+    top: 20%;
+    width: 60%;
+    text-align: center;
+    left: 20%;
+    font-size: large;
+    color: white;
+}
+.dots {
+    margin: 39px auto 0;
+    width: 119px;
+    text-align: center;
+}
+.dots > div {
+    width: 18px;
+    height: 18px;
+    background-color: #333;
+    border-width: 4px;
+    border-style: solid;
+    border-radius: 100%;
+    display: inline-block;
+    -webkit-animation: bouncedelay 1.4s infinite ease-in-out;
+    animation: bouncedelay 1.4s infinite ease-in-out;
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
+}
+.dots .dot1 {
+    -webkit-animation-delay: -0.32s;
+    animation-delay: -0.32s;
+}
+.dots .dot2 {
+    -webkit-animation-delay: -0.16s;
+    animation-delay: -0.16s;
+}
+@-webkit-keyframes bouncedelay {
+    0%, 80%, 100% { -webkit-transform: scale(0.0) }
+    40% { -webkit-transform: scale(1.0) }
+}
+@keyframes bouncedelay {
+    0%, 80%, 100% { 
+        transform: scale(0.0);
+        -webkit-transform: scale(0.0);
+    } 40% { 
+        transform: scale(1.0);
+        -webkit-transform: scale(1.0);
+    }
+}
+/* end of splash backgrounds */

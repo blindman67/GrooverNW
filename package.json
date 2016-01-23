@@ -1,0 +1,14 @@
+{
+  "name": "Groover",
+  "description": "Groover animation and editor.",
+  "version": "0.1.0",
+  "main": "groover.html",
+  "window": {
+    "toolbar": false,
+    "icon": "/icons/Groover16.png",
+    "title" : "Groover NW V0.1B (c)2016."
+  },
+  "scripts": {
+    "start": "nw ."
+  }
+}
