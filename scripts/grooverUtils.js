@@ -103,7 +103,12 @@ groover.author = {
         };
     }
 }
+
+// for gemo and math that involves points there are genraly 2 versions
+// the normal version where points as definded x1,y1 for point1 or x,y for point
+// and the point vertions post fixed with P and take points in the form {x:?,y:?};
 var mMath = {
+    // value and number displays
     pads : ['','0','00','000','0000','00000','000000'],
     padNumber : function(num,pad){
         if(pad <= 1){
@@ -126,18 +131,102 @@ var mMath = {
             return this.pads[Math.max(0,p-4)] + num;
         }          
     },
-    rand :function(v1,v2){
+    
+    // gemoetry lines etc  
+    triPheta : function(a,b,c){
+        return Math.acos((c * c - (a * a + b * b)) / (-2 * a * b));
+    },
+    triCosPheta : function(a,b,c){
+        return (c * c - (a * a + b * b)) / (-2 * a * b);
+    },
+    triLenC : function(a,b,pheta){
+        return Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(pheta));
+    },
+    triLenC2 : function(a,b,pheta){
+        return a*a + b*b - 2*a*b*Math.cos(pheta);
+    },
+
+    // x1,y1 is point one and so on
+    completeTri : function completeTri(data,x1,y1,x2,y2,x3,y3){ // given points on triagle find lengths and angles
+        var aa,bb,cc,a,b,c,C,B,A; 
+        if(data === undefined){
+            data = {};
+        }
+        // a is len p1 to p2 
+        // aa square length 
+        // A is angle between p1,p2 and p1,p3
+        data.a = a = Math.sqrt(aa = Math.pow(x2-x1,2)+Math.pow(y2-y1,2));
+        data.b = b = Math.sqrt(bb = Math.pow(x3-x2,2)+Math.pow(y3-y2,2));
+        data.c = c = Math.sqrt(cc = Math.pow(x1-x3,2)+Math.pow(y1-y3,2));
+        data.pB = Math.acos((bb - (cc + aa)) / (-2 * c * a));
+        data.pC = Math.acos((cc - (aa + bb)) / (-2 * a * b));
+        data.pA = Math.acos((aa - (cc + bb)) / (-2 * c * b));
+        return data;
+    },
+    completeTriP : function completeTri(data,P1,p2,p3){ // given points on triagle find lengths and angles
+        var aa,bb,cc,a,b,c,C,B,A; 
+        if(data === undefined){
+            data = {};
+        }
+        // a is len p1 to p2 
+        // aa square length 
+        // A is angle between p1,p2 and p1,p3
+        data.a = a = Math.sqrt(aa = Math.pow(p2.x-p1.x,2)+Math.pow(p2.y-p1.y,2));
+        data.b = b = Math.sqrt(bb = Math.pow(p3.x-p2.x,2)+Math.pow(p3.y-p2.y,2));
+        data.c = c = Math.sqrt(cc = Math.pow(p1.x-p3.x,2)+Math.pow(p1.y-p3.y,2));
+        data.pB = Math.acos((bb - (cc + aa)) / (-2 * c * a));
+        data.pC = Math.acos((cc - (aa + bb)) / (-2 * a * b));
+        data.pA = Math.acos((aa - (cc + bb)) / (-2 * c * b));
+        return data;
+    },
+    
+    // random functions
+    rand :function(v1,v2){ // random float
         if(v2 === undefined){
             return Math.random() * v1;
-        }
+        }        
         return Math.random() * (v2 - v1) + v1;
     },
-    randI :function(v1,v2){
+    randI :function(v1,v2){ // Random int 
         if(v2 === undefined){
             return Math.floor(Math.random() * v1);
         }
         return Math.floor(Math.random() * (v2 - v1) + v1);
     },
+    randBell2 : function(v1,v2){
+        var r = Math.random() + Math.random();
+        if(v1 === undefined){
+            return r / 2;
+        }
+        if(v2 === undefined){
+            return (r * v1) / 2;
+        }
+        return  (r / 2) * (v2 - v1) + v1
+    },
+    randBell3 : function(v1,v2){
+        var r = Math.random() + Math.random() + Math.random();
+        if(v1 === undefined){
+            return r / 3;
+        }
+        if(v2 === undefined){
+            return (r / 3) * v1 ;
+        }
+        return  (r / 3) * (v2 - v1) + v1
+    },
+    randBell : function(p,v1,v2){
+        var r,pp = p;
+        while(p--){
+            r += Math.random();
+        }
+        if(v1 === undefined){
+            return r / pp;
+        }
+        if(v2 === undefined){
+            return (r / pp) * v1 ;
+        }
+        return  (r / pp) * (v2 - v1) + v1
+    },
+    // ease functions
     easeInOut : function(x,pow){
         var xx = Math.pow(x,pow);
         return (xx/(xx+Math.pow(1-x,pow)));
@@ -219,7 +308,22 @@ var mMath = {
         return 3*0.9*p*(1-p)*(1-p)+0.1*3*p*p*(1-p)+Math.pow(p,3);
     } ,        
         
+    // view and render functions    
+    mat2FromLine : function(matrix,x1,y1,x2,y2){
+        if(matrix ===  undefined){
+            matrix = [0,0,0,0,0,0];
+        }
+        // stub only
+        return matrix;
+    },
+    mat2FromLine : function(matrix,p1,p2){
+        if(matrix ===  undefined){
+            matrix = [0,0,0,0,0,0];
+        }
+        // stub only
         
+        return matrix;
+    },
     getDisplayTransformer : function(){
         return (function(){                
             const buttons = [1, 2, 4];
