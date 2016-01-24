@@ -44,18 +44,19 @@ groover.utils.IDS = {
         return s;
     },
 }
-groover.createCanvas = function(){
+groover.createCanvas = function(type){  // defaults to fullscreen no other types defined yet
     $R("canv");
     var canvas = $C("canvas"); 
     canvas.id = "canv";    
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight; 
-    canvas.style.position = "absolute";
-    canvas.style.top = "0px";
-    canvas.style.left = "0px";
-    canvas.style.zIndex = 1000;
+    if(type === undefined || type === null || type === "fullscreen"){
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight; 
+        canvas.style.position = "absolute";
+        canvas.style.top = "0px";
+        canvas.style.left = "0px";
+        canvas.style.zIndex = 1000;
+    }
     canvas.ctx = canvas.getContext("2d"); 
-    $A(canvas);
     return canvas;
 };
 groover.directories = {

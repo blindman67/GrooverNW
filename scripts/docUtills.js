@@ -1,5 +1,5 @@
 "use strict";
-// document utills
+// document utills. Debating any DOM interface so this may be dropped.
 var $ = function(id){  // Query for ID
     if(typeof id === "string"){
         return document.getElementById(id);
@@ -21,9 +21,10 @@ var $R = function(id,element){  // Remove by ID from element or document
 var $A = function(element,element1){  // Append element to document or element1 to element
     if(element1 !== undefined){
         element.appendChild(element1);
-        return;
+        return element1;
     }
     document.body.appendChild(element);
+    return element;
 }
 var $C = function(type,className,id){ // creat element optional add classname and or id
     var e;

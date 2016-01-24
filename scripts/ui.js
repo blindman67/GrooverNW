@@ -18,7 +18,7 @@ function UI(owner){
     this.startLoad = function(ui){
 
     }
-        
+    this.setupToolTip();
 }
 
 
@@ -28,33 +28,127 @@ UI.prototype.display = function(){
     if(groover.busy){
         this.render.drawImageSRA(this.icons.named.busy.image,this.view.width/2,this.view.height * 3/4,1,this.owner.animFrame.time.valueOf()/10,1);
         this.render.drawText(groover.busyMessage,this.view.width/2,this.view.height * 3/4 + 40);
-    }        
+    }  
+    if(this.toolTip !== undefined && this.toolTip.ready){
+        if(!this.toolTip.owner.over || this.MK.BR !== 0 || this.MK.w !== 0){
+            this.toolTip.free();
+
+        }else{
+            this.toolTip.display();
+        }
+    }
 }
 
 UI.prototype.mediaReady = function(){
     this.ready = true;
-    log("UI ready");
-    
+    log("UI ready"); 
 }
 UI.prototype.loadMedia = function(){
     this.icons = this.bitmaps.startLoad(this.mediaReady.bind(this),"icons");
     this.bitmaps.load("icons","icons/busy.png","busy");
 }
+UI.prototype.setupToolTip = function(){
+    this.toolTip = {
+        render : this.render,
+        view : this.view,
+        mouse : this.MK,
+        maxWidth : 256,
+        maxHeight : 256,
+        fontSize : 12,
+        font : "Arial",
+        background : "#DB6",
+        colour: "black",
+        ready : false,
+        avalible : true,
+        set : function(text,owner){
+            var i, c, maxW, height;
+            if(!this.avalible){
+                return;
+            }
+            this.owner = owner;
+            text = text.split("\n");
+            c = this.canvas.ctx;
+            c.font = this.fontSize + "px "+this.font;
+            c.textBaseline = "hanging";
+            c.fillStyle = this.background;
+            c.strokeStyle = this.colour;
+            c.clearRect(0,0,this.maxWidth,this.maxHeight);
+            maxW = 0;
+            for(i = 0; i < text.length; i ++){
+                maxW = Math.max(maxW,c.measureText(text[i]).width);
+            }
+            height = text.length * (this.fontSize +2) + 4;
+            c.fillRect(2,2,maxW + 8, height);
+            c.strokeRect(2,2,maxW + 8, height);
+            c.fillStyle = this.colour;
+            for(i = 0; i < text.length; i ++){
+                c.fillText(text[i],5,i*(this.fontSize +2) + 6);
+            }
+             this.width = maxW + 8 + 4;
+             this.height = height + 8;
+             this.ready = true;
+             this.avalible = false;
+             this.timer = 0;
+        },
+        free : function(){
+            this.ready = false;
+            this.avalible = true;
+            this.owner.overCount = 0;
+            this.owner = undefined;            
+        },
+        display : function(){
+            var a,x,y;
+            if(this.ready){
+                a = 1;
+                x = this.mouse.x + 5;
+                y = this.mouse.y + 8;
+                if(x + this.width > this.view.width){
+                    x = this.mouse.x - 5 - this.width;
+                }
+                if(y + this.height > this.view.height){
+                    y = this.mouse.y - 8 - this.height;
+                }
+                if(this.timer < 1){
+                    this.timer += 0.05;
+                    if(this.timer >= 1){
+                        this.timer = 1;
+                    }
+                    a = mMath.easeInOut(this.timer,2);
+                }
+                this.render.drawBitmapPart(this.canvas,x,y,0,0,this.width,this.height,a);
+            }
+        }, 
+    }
+    this.toolTip.canvas = this.createCanvas(this.toolTip.maxWidth,this.toolTip.maxHeight);
+}
+
 UI.prototype.createLocationInterface = function(owner,group){
     return {
         owner : owner,
         group : group,
         set: function(x,y,w,h){
-            this.x = x;
-            this.y = y;
-            if(w === undefined){
-                w = this.owner.canvas.width;
+            if(x !== null && x !== undefined){
+                this.x = x;
             }
-            if(h === undefined){
-                h = this.owner.canvas.height;
+            if(y !== null && y !== undefined){
+                this.y = y;
             }
-            this.w = w;
-            this.h = h;
+            if(w === null || w === undefined){
+                if(this.owner.canvas !== undefined){
+                    w = this.owner.canvas.width;
+                }
+            }
+            if(h === null || h === undefined){
+                if(this.owner.canvas !== undefined){
+                    h = this.owner.canvas.height;
+                }
+            }
+            if(w !== null && w !== undefined){
+                this.w = w;
+            }
+            if(h !== null && h !== undefined){
+                this.h = h;
+            }
             if(this.group !== undefined){
                 this.group.recaculateBounds();
             }
@@ -63,6 +157,7 @@ UI.prototype.createLocationInterface = function(owner,group){
         y:0,
         w:0,
         h:0,
+        alpha : 1,
     };    
 }
 UI.prototype.createMouseInterface = function(owner,canHoldMouse){
@@ -75,6 +170,22 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
         over : false,
         canHoldMouse : canHoldMouse || canHoldMouse === undefined ? true : false,
         hold : false,
+        inactive : false,
+        overCount : 0,
+        deactivate : function(){
+            if(this.mouse.mousePrivate !== this.id){
+                this.inactive = true;
+                if(this.owner.location !== undefined){
+                    this.owner.location.alpha = 0.5;
+                }
+            }
+        },
+        activate : function(){
+            this.inactive = false;
+            if(this.owner.location !== undefined){
+                this.owner.location.alpha = 1;
+            }
+        },
         holdMouse : function(){
             if(this.mouse.mousePrivate === this.id){
                 this.hold = true;
@@ -84,11 +195,22 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
         },
         releaseMouse : function(){
             this.hold = false;
+            var l = this.owner.location;
+            if(this.mouse.x >= l.x && this.mouse.x < l.x + l.w && this.mouse.y >= l.y && this.mouse.y < l.y + l.h){
+                this.over = true;
+            }else{
+                this.over = false;
+                this.overCount = 0;
+            }            
         },
         isMouseOver : function(){
             var l = this.owner.location;
+            if(this.inactive){
+                return;
+            }
             if(this.hold){
                 this.over = true;
+                this.overCount += 1;
                 this.x = this.mouse.x - l.x;
                 this.y = this.mouse.y - l.y;
             }else
@@ -96,10 +218,13 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
 
                 if(this.mouse.x >= l.x && this.mouse.x < l.x + l.w && this.mouse.y >= l.y && this.mouse.y < l.y + l.h){
                     this.over = true;
+                    this.overCount += 1;
                     this.x = this.mouse.x - l.x;
                     this.y = this.mouse.y - l.y;
                 }else{
                     this.over = false;
+                    this.overCount = 0;
+
                 }
                 if((this.canHoldMouse  && (this.mouse.mousePrivate === this.id || this.mouse.mousePrivate === 0)) || this.mouse.mousePrivate === this.id){
                     if(this.over){
@@ -111,8 +236,16 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
                         }
                     }
                 }
+                if(this.over && this.overCount > 60 && this.owner.toolTip !== undefined){
+                    if(this.owner.owner.toolTip !== undefined && this.owner.owner.toolTip.avalible){
+                        this.owner.owner.toolTip.set(this.owner.toolTip,this);
+                        
+                    }                    
+                }
             }else{
                 this.over = false;
+                this.overCount = 0;
+
                 if(this.mouse.mousePrivate === this.id && this.hold === false){
                     this.mouse.releaseCursor(this.id);
                     this.mouse.mousePrivate = 0;
@@ -214,158 +347,3 @@ UI.prototype.createUI = function(UIType,name,data,owner){
     return this.UIStub(name,data,owner);
 }
 
-
-UI.prototype.createDayView = function(){
-    var uiReady = function(){
-       ui.ready = true;
-    }
-    this.icons = this.bitmaps.startLoad(uiReady,"icons");    
-    var ui = {
-        owner : this,
-        ready : false,
-        nightDay : this.bitmaps.load("icons","icons/NightEveningDay.png","nightDay"),
-        day24 : this.bitmaps.load("icons","icons/Day24.png","day24"),
-        timeMark : this.bitmaps.load("icons","icons/TimeMarker.png","timeMarker"),
-        canvas : this.createCanvas(256 * 7, 32),  
-        mouse:null,
-        location:null,
-        time : new Date().valueOf(),
-        duration: 60 * 60 * 1000,
-        now : Math.ceil(new Date().valueOf() / (24*60*60*1000))*(24*60*60*1000),
-        totalTime : 7 * (24*60*60*1000), // in days
-        sliderNx : 0,  // normalised pos
-        sliderNw : 0,  // normalised width
-        doInterface : function(time,dur){
-            this.mouse.isMouseOver();
-            this.now = new Date().valueOf();
-            this.now = Math.ceil(this.now / (24*60*60*1000))*(24*60*60*1000);
-            this.duration = dur;
-            this.time = time;
-            this.sliderNx = (time-(this.now - this.totalTime))/this.totalTime;
-            this.sliderNw = dur/this.totalTime;
-            if(this.mouse.over){
-                if(this.mouse.mouse.mousePrivate === this.mouse.id){
-                    this.mouse.mouse.requestCursor("pointer",this.mouse.id);
-                }
-            }            
-        
-        },
-        update : function(time,duration){            
-            if(ui.ready){
-
-               this.doInterface();
-
-                var rend = this.owner.render;
-                var nd = this.nightDay.image;
-                var nd24 = this.day24.image;
-                var tm = this.timeMark.image;
-                rend.pushCTX(this.canvas.ctx);                
-                for(var i = 0; i < 7; i += 1){
-                    rend.drawBitmapAbs(nd,i*256,0,i*256+128,32,1);
-                    rend.drawBitmapAbs(nd,i*256+255,0,i*256+128,32,1);
-                    rend.drawBitmapAbs(nd24,i*256,0,i*256+256,32,1);
-                }
-                rend.drawBitmapAbs(tm,this.sliderNx*256*7,2,(this.sliderNx+this.sliderNw)*256*7,29,0.4);
-                rend.popCTX();
-            }
-        },
-        display : function(){
-            var rend = this.owner.render;
-            var l = this.location;
-            var a = this.mouse.over?1:0.7;
-            rend.drawBitmapSize(this.canvas,l.x,l.y,l.w,l.h,a);
-        }
-            
-    }
-    ui.mouse= this.createMouseInterface(ui);
-    ui.location= this.createLocationInterface(ui);
-    return ui;
-}
-    
-
-
-UI.prototype.createSlider = function(min,max,width,group){
-    var tempX,tempY,tempH,tempW;
-    var uiReady = function(){
-       ui.ready = true;
-       ui.setup();
-       ui.location= ui.owner.createLocationInterface(ui,group);
-       if(tempX !== undefined){
-        ui.location.set(tempX,tempY,tempW,tempH);
-       }
-       if(group !== undefined){
-           group.addUI(ui.location);
-       }
-       ui.update();
-
-    }
-    this.icons = this.bitmaps.startLoad(uiReady,"icons");    
-    //this.startLoad(ui);
-    var ui = {
-        owner : this,
-        ready : false,
-        min : min,
-        max : max,
-        value : min,
-        sprites : this.bitmaps.load("icons","icons/SliderSmall.png","sliderSpritesSmall",this.bitmaps.onLoadCreateHSprites.bind(this.bitmaps)),
-        canvas : null,  
-        location :{
-            set : function(x,y,w,h){
-                tempX = x;
-                tempY = y;
-                tempH = h;
-                tempW = w;
-            }
-        }, // stub till ready to set location
-        setup : function(){
-            this.canvas = this.owner.createCanvas(width,12);
-        },
-        update : function(){
-            
-            if(this.ready){
-                this.mouse.isMouseOver();
-                var rend =this.owner.render;
-                rend.pushCTX(this.canvas.ctx); 
-                var c = this.canvas.ctx;
-                var w = this.canvas.width-17;
-                var pos = Math.round(((this.value-this.min)/(this.max-this.min))*(w-4)+2);
-                var img = this.sprites.image;
-                rend.drawSpriteA(img,4,0,0,1);
-                rend.drawSpriteAW(img,5,3,0,w,1);
-                rend.drawSpriteA(img,6,3+w,0,1);
-                rend.drawSpriteA(img,49,6+w,0,1);
-                rend.drawSpriteA(img,50,9+w,0,1);
-                rend.drawSpriteA(img,45,10+w,0,1);
-                rend.drawSpriteA(img,28,pos,0,1);
-                rend.popCTX();
-            }
-        },
-        display : function(){
-            this.mouse.isMouseOver();
-            if(this.mouse.over){
-                if(this.mouse.mouse.mousePrivate === this.mouse.id){
-                    this.mouse.mouse.requestCursor("pointer",this.mouse.id);
-                }
-            }              
-            var rend = this.owner.render;
-            var l = this.location;
-            var a = 1;//this.mouse.over?1:0.7;
-            rend.drawBitmapSize(this.canvas,l.x,l.y,l.w,l.h,a);
-        }        
-    }
-    
-    ui.mouse=this.createMouseInterface(ui);
-    return ui;
-    
-}    
-
-var Item = {
-    x : 0,
-    y : 0,
-    w : 0,
-    h : 0,
-    sx : 1,  // scale
-    sy : 1,
-    r : 0,  // rotation
-    a : 0,  // alpha
-}

@@ -23,12 +23,14 @@
             owner : owner,
             name : name,
             ready : false,
+            toolTip : data.toolTip,
             min : data.min,
             max : data.max,
             value : data.min,
             oldValue : null,
-            redraw : true,
-            sprites : UI.bitmaps.load("icons", "icons/SliderSmall.png", "sliderSpritesSmall", UI.bitmaps.onLoadCreateHSprites.bind(UI.bitmaps)),
+            pixelValue : 0,
+            dirty : true,
+            sprites : UI.bitmaps.load("icons", "icons/SliderSmall.png", "sliderSpritesSmall", UI.bitmaps.onLoadCreateSprites.bind(UI.bitmaps)),
             canvas : null,
             draggingSlider : false,
             dragStartPos : 0,
@@ -46,6 +48,30 @@
             }, // stub till ready to set location
             setup : function () {
                 this.canvas = this.owner.createCanvas(data.width, 12);
+            },
+            redraw : function(){
+                var w = this.canvas.width;
+                var wn = w - this.numWidth;
+                var pos = Math.round(((this.value - this.min) / (this.max - this.min)) * (wn - 4) + 2);
+
+                var rend = this.owner.render;
+                this.canvas.ctx.clearRect(0,0,w,this.canvas.height);
+                rend.pushCTX(this.canvas.ctx);
+                rend.drawSpriteA(img, this.colour + 3, 0, 0, 1);
+                rend.drawSpriteAW(img, this.colour + 4, 3, 0, pos, 1);
+                rend.drawSpriteAW(img, this.colour + 1, pos, 0, w-pos, 1);
+                rend.drawSpriteA(img, this.colour + 2, w, 0, 1);
+                rend.drawSpriteA(img, 49, wn+1, 0, 1);
+                rend.drawSpriteAW(img, 50, wn + 4, 0, this.numWidth-7,1);
+                rend.drawSpriteA(img, 51, w -  3, 0, 1);
+                var num = ""+mMath.padNumber(Math.round(this.value),this.digets);
+                for(var i = 0 ; i < this.digets ; i++){
+                    rend.drawSpriteA(img, num.charCodeAt(i)-48+29, wn + 5 + 4 * i,0,1)
+                }                
+                rend.drawSpriteA(img, 28, pos, 0, 1);
+                rend.popCTX();
+              
+                this.dirty = false;
             },
             update : function () {
                 if (this.ready) {
@@ -99,34 +125,17 @@
                                 }
                                 m.mouse.w = 0;
                                 this.value = Math.min(this.max,Math.max(this.min,this.value));
-                                pos = Math.round(((this.value - this.min) / (this.max - this.min)) * (w - 4) + 2);
                             }
                                 
                         }
                     }
                     if(this.value !== this.oldValue){
-                        this.redraw = true;
+                        pos = Math.round(((this.value - this.min) / (this.max - this.min)) * (w - 4) + 2);
+                        this.dirty = true;
                     }
                     this.oldValue = this.value;
-                    if(this.redraw){
-                        var rend = this.owner.render;
-                        this.canvas.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-                        rend.pushCTX(this.canvas.ctx);
-                        rend.drawSpriteA(img, this.colour + 3, 0, 0, 1);
-                        rend.drawSpriteAW(img, this.colour + 4, 3, 0, pos, 1);
-                        rend.drawSpriteAW(img, this.colour + 1, pos, 0, w-pos, 1);
-                        rend.drawSpriteA(img, this.colour + 2, w, 0, 1);
-                        rend.drawSpriteA(img, 49, this.canvas.width - this.numWidth+1, 0, 1);
-                        rend.drawSpriteAW(img, 50, this.canvas.width - this.numWidth + 4, 0, this.numWidth-7,1);
-                        rend.drawSpriteA(img, 51, this.canvas.width -  3, 0, 1);
-                        var num = ""+mMath.padNumber(Math.round(this.value),this.digets);
-                        for(var i = 0 ; i < this.digets ; i++){
-                            rend.drawSpriteA(img, num.charCodeAt(i)-48+29, this.canvas.width - this.numWidth + 5 + 4 * i,0,1)
-                        }
-                        
-                        rend.drawSpriteA(img, 28, pos, 0, 1);
-                        rend.popCTX();
-                        this.redraw = false;
+                    if(this.dirty){
+                        this.redraw();
                     }
                 }
             },
@@ -134,8 +143,7 @@
                 var m = this.mouse;
                 var rend = this.owner.render;
                 var l = this.location;
-                var a = 1; //this.mouse.over?1:0.7;
-                rend.drawBitmapSize(this.canvas, l.x, l.y, l.w, l.h, a);
+                rend.drawBitmapSize(this.canvas, l.x, l.y, l.w, l.h, l.alpha);
             }
         }
         ui.mouse = UI.createMouseInterface(ui);

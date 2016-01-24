@@ -3,6 +3,7 @@ function Render(owner){
     this.owner = owner;
     this.view = this.owner.display;
     this.ready = true;
+    this.currentTarget;
     log("Render manager ready");
 
     var ctx;
@@ -15,6 +16,7 @@ function Render(owner){
 
     this.displayUpdate = function(){
         ctx = this.view.ctx;
+        this.currentTarget = this.view;
         ctx.renderer = this;
         w = this.view.width;
         h = this.view.height;
@@ -117,6 +119,41 @@ function Render(owner){
         ctx.globalAlpha = 1 * globalAlpha;
         ctx.setTransform(1, 0, 0, 1, x,y);
         ctx.drawImage(img,0,0);
+    }
+    this.drawBitmapPart = function(img,x,y,fx,fy,fw,fh,alpha){
+        ctx.globalAlpha = alpha * globalAlpha;
+        ctx.setTransform(1, 0, 0, 1, x,y);
+        ctx.drawImage(img,fx,fy,fw,fh,0,0,fw,fh);
+    }
+    this.measureSpriteText = function(img,text,textBase){
+        var len = text.length;
+        var pos = 0;
+        for(var i = 0; i < len; i++){
+            var s = text.charCodeAt(i)-33
+            if(s === -1){
+                pos += img.sprites[1 + textBase].w + 1;
+            }else{
+                var sp = img.sprites[s + textBase];
+                pos += sp.w + 1;
+            }
+        }
+        return pos;
+    }
+    this.drawSpriteText = function(img,x,y,text,textBase){
+        ctx.globalAlpha = 1 * globalAlpha;
+        ctx.setTransform(1, 0, 0, 1, x,y);
+        var len = text.length;
+        var pos = 0;
+        for(var i = 0; i < len; i++){
+            var s = text.charCodeAt(i)-33
+            if(s === -1){
+                pos += img.sprites[1 + textBase].w + 1;                
+            }else{
+                var sp = img.sprites[s + textBase];
+                ctx.drawImage(img,sp.x,sp.y,sp.w,sp.h,pos,0,sp.w,sp.h);
+                pos += sp.w + 1;
+            }
+        }
     }
     this.drawBitmapAbs = function(img,x,y,x1,y1,alpha){
         ctx.globalAlpha = alpha * globalAlpha;
@@ -255,8 +292,5 @@ function Render(owner){
         ctx.setTransform(1, 0, 0, 1, x,y);                
         ctx.fillText(text,0,0);
     }
-    
-    
-    
-    
 }
+

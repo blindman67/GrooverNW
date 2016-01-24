@@ -62,6 +62,7 @@ function MouseKeyboard(owner){
     this.oldB3;
     this.oldBR;
     this.mousePrivate = 0;
+    this.buttonDownOn = 0; // ID of UI element when the button first down. 
     this.holderID = 10;
     this.getHolderID = function(){
         this.holderID += 1;

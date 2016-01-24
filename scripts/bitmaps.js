@@ -165,6 +165,9 @@ Bitmaps.prototype.load = function(group,filename,name,callback,data){
     image.image.self = image;    
     image.filename = filename;
     image.name = name;
+    if(image.image.data === undefined && data !== undefined){
+        image.data = data;
+    }
     image.group = imageGroup;
     image.callback = callback;
     imageGroup.list.push(image);
@@ -454,10 +457,23 @@ var imageProcessing = {
     }    
 }    
 // very ugly code. Must do something to this.
-Bitmaps.prototype.onLoadCreateSprites = function(status,image){
+Bitmaps.prototype.onLoadCreateSprites1 = function(status,image){
     if(status === null){
         if(image.image.sprites === undefined){
             this.checkAndDecodeSpriteData(image);
+        }
+    }    
+}
+Bitmaps.prototype.onLoadCreateSprites = function(status,image){
+    if(status === null){
+        if(image.image.sprites === undefined){
+            if(image.data && image.data.spriteCutter){
+                if(image.data.spriteCutter.how.toLowerCase() === "grid"){
+                    this.gridSpriteCutter(image);
+                }
+            }else{
+                this.horizontalSpriteCutter(image);
+            }
         }
     }    
 }
@@ -506,7 +522,108 @@ Bitmaps.prototype.horizontalSpriteCutter = function(image){
     image.hasSprites = true;
     image.spriteCount = sprites.length;
 }
+
+// image must have the following structered object for cutting info in image.data
+// spriteCutter = {
+//    pixelWidth : ?  // Prefered optional. Sprite pixel width
+//    pixelHeight : ? // option but requiered with above. sprites pixel height
+//    widthCount : ?  // if not pixelWidth then image is cut into width count slices. sprite size is calaculated
+//                       form floor(image.width / widthCount)
+//    heightCount : ?  // same as above
+//    repackwidth : ?    // optional Boolean if true resizes sprite to trim transparent left and right edges
+//    repackHeight : ?   // same as above for top bottom pixel
+//  }
+
+Bitmaps.prototype.gridSpriteCutter = function(image){
+    var sprites, w, h, x, y,hCount,wCount,pixelW,pixelH,canvas,ctx,repackW,repackH,top,left,bot,right,data,xx,yy,ind;
+    if(image.animation || image.video){
+        return undefined;
+    }
+    log("Grid sprite on: '"+ image.filename + "'");
+    sprites = [];
+    w = image.image.width;
+    h = image.image.height;
+    if(image.data.spriteCutter.pixelWidth !== undefined){
+         pixelW = image.data.spriteCutter.pixelWidth;
+         pixelH = image.data.spriteCutter.pixelHeight;
+         hCount = Math.floor(h/pixelH);
+         wCount = Math.floor(w/pixelW);         
+    }else{
+         hCount = image.data.spriteCutter.widthCount;
+         wCount = image.data.spriteCutter.heightCount;
+         pixelH = Math.floor(h/hCount);
+         pixelW = Math.floor(w/wCount);         
+    }
+    if(image.data.spriteCutter.repackWidth || image.data.spriteCutter.repackHeight){
+        repackW = image.data.spriteCutter.repackWidth;
+        repackH = image.data.spriteCutter.repackHeight;
+        canvas = document.createElement("canvas");
+        canvas.width = pixelW;
+        canvas.height = pixelH;
+        ctx = canvas.getContext("2d");
+        ctx.imageSmoothingEnabled = false;  
+    }
+    for(y = 0; y < hCount ; y++){
+        for(x = 0; x < wCount; x++){
+            if(repackW || repackH){
+                ctx.clearRect(0,0,pixelW,pixelH);
+                ctx.drawImage(image.image,-x*pixelW,-y*pixelH);
+                data = ctx.getImageData(0,0,pixelW,pixelH).data;
+                top = 0;
+                bot = 0;
+                left = pixelW;
+                right = 0;
+                for(yy = 0; yy < pixelH; yy++){ 
+                    for(xx = 0; xx < pixelW; xx++){
+                        ind = yy * 4 * pixelW + xx * 4;
+                        if(data[ind + 3] > 0){
+                            if(top === undefined){
+                                top = y;
+                            }
+                            if(xx < left){
+                                left = xx;
+                            }
+                            if(xx > right){
+                                right = xx;
+                            }
+                            bot = yy;
+                        }
+                    }
+                }
+                if(!repackW){
+                    left = 0;
+                    right = pixelW;
+                }
+                if(!repackH){
+                    top = 0;
+                    bot = pixelH;
+                }
+                sprites.push({
+                    x:x*pixelW + left,
+                    y:y*pixelH + top,
+                    w:right-left,
+                    h:bot-top,
+                });
+            }else{
+                sprites.push({
+                    x:x*pixelW,
+                    y:y*pixelH,
+                    w:pixelW,
+                    h:pixelH,
+                });
+            }
+        }
+    }
+    image.image.sprites = sprites;
+    image.hasSprites = true;
+    image.spriteCount = sprites.length;
+}
     
+    
+// Trying to avoid using this function. Here for legacy sprites. Groover Designer has option for packing
+// sprite with JSON description file. If you need to have packed variable sized sprites select do it
+// with the JSON descriptor rather than the encoding the image as eventualy this will be removed as
+// I find it very clunky.
 Bitmaps.prototype.checkAndDecodeSpriteData = function(image){
     var w,h,canavs,ctx,indx,imData,nd,i,line,prefix,same,packetSize,bigData,sprites,groups;
     var spritesPerLine,reading,ccc,groupNum,old,first,first1,first2,ns,canvas;

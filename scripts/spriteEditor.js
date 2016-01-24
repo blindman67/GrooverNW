@@ -31,16 +31,48 @@ function SpriteEditor(owner){
 //    this.dayViewUI = this.owner.ui.createDayView();
     this.dayViewUI =  this.owner.ui.createUI("UITimeDisplay","timeDisplay",{});
     this.log =  this.owner.ui.createUI("UILogDisplay","Log",{pos:{x:0,y:0},displayLines:12,font:"14px Lucida Console",width:256});
+    this.testWindow = this.owner.ui.createUI("UIWindowSmall","windowTest",{title:"Test Window",toolTip:"Experimental Window"});
     this.testGroup = this.owner.ui.createUI("UIGroup","testGroup");
-    this.testSlider = this.owner.ui.createUI("UISliderSmall","testSlider1",{min:0,max:100,value:10,width:500,digets:3,colour:0,wheelStep : 5,group:this.testGroup});
+    this.testSlider = this.owner.ui.createUI("UISliderSmall","testSlider1",{min:0,max:100,value:10,width:500,digets:3,colour:0,wheelStep : 5,group:this.testGroup,toolTip:"This is a test slider.\nClick any where on it to set value.\nClick drag to set value.\nUse mouse wheel to change value\nMore functions soon." });
     this.testSlider1 = this.owner.ui.createUI("UISliderSmall","testSlider1",{min:0,max:100,value:10,width:200,digets:3,colour:1,wheelStep : 5,group:this.testGroup});
     this.testSlider2 = this.owner.ui.createUI("UISliderSmall","testSlider1",{min:0,max:100,value:10,width:200,digets:3,colour:2,wheelStep : 5,group:this.testGroup});
     this.testSlider3 = this.owner.ui.createUI("UISliderSmall","testSlider1",{min:0,max:100,value:10,width:200,digets:3,colour:3,wheelStep : 5,group:this.testGroup});
+    this.checkBox = this.owner.ui.createUI("UICheckBox","checkBox",{text:"Test check box.",checked:false,width:0,group:this.testGroup});
+    this.checkBox1 = this.owner.ui.createUI("UICheckBox","checkBox1",{text:"Check this to so you can.",checked:true,width:0,group:this.testGroup});
+    this.checkBox2 = this.owner.ui.createUI("UICheckBox","checkBox2",{text:"Hide sliders.",checked:true,width:0,group:this.testGroup,onchecked:function(){log("CHECKED")},onunchecked:function(){log("UNCHECKED")}});
+    
+    var hideShowCh = (function(ui){
+        if(ui.checked){
+            this.checkBox.mouse.deactivate();
+            this.checkBox1.mouse.deactivate();
+            this.checkBox2.mouse.deactivate();
+        }else{
+            this.checkBox.mouse.activate();
+            this.checkBox1.mouse.activate();
+            this.checkBox2.mouse.activate();
+        }
+    }).bind(this);
+    this.checkBox3 = this.owner.ui.createUI("UICheckBox","checkBox3",{text:"Hide Other checkboxes.",checked:true,width:0,group:this.testGroup,onchecked:hideShowCh,onunchecked:hideShowCh,toolTip:"Well bugger me it works?\nNew line should work.\nAnd another."});
+    this.checkBox4 = this.owner.ui.createUI("UICheckBox","checkBox3",{text:"Green Red."  ,type:"greenRed",checked:true,width:0,group:this.testGroup,onchecked:hideShowCh,onunchecked:hideShowCh,toolTip:"Well bugger me it works?\nNew line should work.\nAnd another."});
+    this.checkBox5 = this.owner.ui.createUI("UICheckBox","checkBox3",{text:"Tick Cross." ,type:"tickCross",checked:true,width:0,group:this.testGroup,onchecked:hideShowCh,onunchecked:hideShowCh,toolTip:"Well bugger me it works?\nNew line should work.\nAnd another."});
+    this.checkBox6 = this.owner.ui.createUI("UICheckBox","checkBox3",{text:"Yes No."     ,type:"yesNo",checked:true,width:0,group:this.testGroup,onchecked:hideShowCh,onunchecked:hideShowCh,toolTip:"Well bugger me it works?\nNew line should work.\nAnd another."});
+    this.checkBox7 = this.owner.ui.createUI("UICheckBox","checkBox3",{text:"On Off."     ,type:"onOff",checked:true,width:0,group:this.testGroup,onchecked:hideShowCh,onunchecked:hideShowCh,toolTip:"Well bugger me it works?\nNew line should work.\nAnd another."});
+    this.checkBox8 = this.owner.ui.createUI("UICheckBox","checkBox3",{text:"Black White.",type:"blackWhite",checked:true,width:0,group:this.testGroup,onchecked:hideShowCh,onunchecked:hideShowCh,toolTip:"Well bugger me it works?\nNew line should work.\nAnd another."});
    //this.testSlider = this.owner.ui.createSlider(0,100,200,this.testGroup);
     this.testSlider.location.set(256,250);
     this.testSlider1.location.set(256,262);
     this.testSlider2.location.set(256,274);
     this.testSlider3.location.set(256,286);
+    this.checkBox.location.set(256,298);
+    this.checkBox1.location.set(256,314);
+    this.checkBox2.location.set(256,330);
+    this.checkBox3.location.set(256,346);
+    var yy = 346 + 16;
+    this.checkBox4.location.set(256,yy); yy += 16;
+    this.checkBox5.location.set(256,yy); yy += 16;
+    this.checkBox6.location.set(256,yy); yy += 16;
+    this.checkBox7.location.set(256,yy); yy += 16;
+    this.checkBox8.location.set(256,yy); yy += 16;
 
 }
 var imageType = {
@@ -614,6 +646,8 @@ SpriteEditor.prototype.displaydhfdhf = function(){
                     this.testGroup.mouse.isMouseOver();
                     this.testGroup.update();
                     this.testGroup.display();
+                    this.testWindow.update();
+                    this.testWindow.display();
                 }
             }
         }
