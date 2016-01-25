@@ -1,4 +1,9 @@
 {
-    description : "Groover settings. This is only for groover and not for the app it is running.",
-    applicationDirectory : "apps",
+    "version" : "V0.0.1",
+    "description" : "Groover settings. This is only for groover and not for the app it is running.",
+    "applicationDirectory" : "\\apps",
+    "scriptDirectory" : "\\scripts",
+    "modualsDirectory" : "\\scripts\\moduals",
+    
+    "dumbLuck" : true
 }

@@ -77,6 +77,9 @@ function MouseKeyboard(owner){
     var keyEventList = "keypress".split(",");
     this.mainCanvas;
     this.viewUpdated = function(){
+        if(this.mainCanvas !== undefined){
+            this.removeViewListeners();
+        }
         var can = this.owner.canvas;
         var listener = this.mouseEvent.bind(this);
         var listenerK = this.keyEvent.bind(this);
@@ -86,7 +89,7 @@ function MouseKeyboard(owner){
         //can.addEventListener("contextmenu", this.preventDefault);
         log("Mouse and key listeners added");
     }    
-    this.removeDisplayListeners = function(){    
+    this.removeViewListeners = function(){    
         var can = this.mainCanvas;
         var listener = this.mouseEvent.bind(this);
         var listenerK = this.keyEvent.bind(this);

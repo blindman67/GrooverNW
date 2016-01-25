@@ -39,20 +39,21 @@
                 this.dirty = true;
             },
             redraw : function(){
-                var dLen, len, h, i, lineHeight;
+                var dLen, len, h, i, lineHeight,c;
+                c = this.canvas.ctx;
                 lineHeight = settings.lineHeight;
                 len = this.messages.length;
-                dlen = len - settings.displayLines;
+                dLen = len - settings.displayLines;
                 h = Math.floor((settings.displayLines/len)*(this.canvas.height-2));
                 c.clearRect(0,0,this.canvas.width,this.canvas.height);
                 c.fillStyle = "rgba(128,128,128,0.63)";
                 c.fillRect(this.canvas.width-8,0,8,this.canvas.height);
                 c.fillStyle = "rgba(100,128,100,0.93)";
                 c.fillRect(this.canvas.width-7,this.canvas.height-1-h,6,h);
-                for(i = len - 1; i >= dlen && i > -1; i--){
+                for(i = len - 1; i >= dLen && i > -1; i--){
                     c.fillStyle = this.messages[i].colour;
-                    c.strokeText(this.messages[i].text,5,(i-dlen+1)*lineHeight);
-                    c.fillText(this.messages[i].text,5,(i-dlen+1)*lineHeight-1);
+                    c.strokeText(this.messages[i].text,5,(i-dLen+1)*lineHeight);
+                    c.fillText(this.messages[i].text,5,(i-dLen+1)*lineHeight-1);
                 }
                 this.dirty = false;
             },
@@ -62,6 +63,9 @@
                 }
             },
             display : function(){
+                if(this.dirty){
+                    this.redraw();
+                }
                 var rend = this.owner.render;
                 var l = this.location;
                 var a = 1;//this.mouse.over?1:0.7;
@@ -96,7 +100,9 @@
                 if(typeof dat === "string"){
                     ui.addLog(count + ":"+dat,colour);
                 }
-                console.log(dat);
+                if(!QUIET_CONSOLE){
+                    console.log(dat);
+                }
             }
         }
         return ui;

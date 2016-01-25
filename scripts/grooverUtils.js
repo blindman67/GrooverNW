@@ -689,8 +689,80 @@ groover.code = {
         stub : function(){},
     },
     modualDir : process.cwd()+"\\scripts\\moduals",
+    applicationDir : process.cwd() + "\\apps",
     presentError : function(e){
         console.log(e);
+    },
+    loadApplication : function(name){
+        var filename;
+        if(this.moduals[name] !== undefined){
+            return this.moduals[name];
+        }
+        filename = this.applicationDir + "\\" +name+"\\"+ name + ".js";
+        var appDescription = groover.utils.files.loadJson(this.applicationDir + "\\" +name+"\\description");
+        if(appDescription === undefined){
+            log("Error loading application '"+name+"'","red");
+            log("Could not find application file 'description.json'.","red");
+            return undefined;
+        }
+        if(appDescription.JavaScript === undefined){
+            appDescription.JavaScript = {filenames:[name+".js"]};
+        }
+        if(appDescription.JavaScript.filenames === undefined){
+            appDescription.JavaScript.filenames = [name + ".js"];
+        }
+        
+        var error = false;
+        var modual = "";
+        var appDir = this.applicationDir;
+        appDescription.JavaScript.filenames.forEach(function(fName){
+            filename = appDir + "\\" +name+"\\"+ fName;
+            var code = groover.utils.files.loadText(filename);
+            if(code === undefined){
+                if(groover.utils.files.error.error){
+                    log("Error loading application file '"+fname+"'","red");
+                    log("See console details.","red");
+                    console.log($JC(groover.utils.files.error));
+                }
+                error = false;
+            }else{
+                modual += code;
+            }
+        });
+        if(error){
+            log("Error loading application files.");
+            return undefined;
+            
+        }
+        
+        modual += "\n\n";
+        modual += "console.log('Application "+name+" for console referance.');\n";
+        modual += "groover.code.parsed = true;\n";
+        groover.code.parsed = false;
+
+        try{  // add code to the web page and run 
+            var script = $C('script');
+            script.async = true;
+            script.text = modual;
+            $A($TN('head')[0],script);
+            if(this.parsed){
+                return true;
+            }
+            log("Application '"+name+"' did not parse.", "red");
+            if(!this.parsed){
+                console.log("Application '"+name+"' did not parse.");             
+            }else{
+                console.log("Application '"+name+"' Failed to excecute.");
+            }
+            
+            return undefined;
+                
+
+        }catch(e){
+            log("Could not load Application '"+name+"' see console.", "red");
+            console.log(e);
+        }        
+        return undefined;
     },
     load : function (name){
         var filename;
@@ -895,12 +967,19 @@ groover.utils.files = {
     },
     loadJson : function (name){
         var filename;
-        filename = name + ".json";
+        if(name.indexOf(".json") === -1){
+            filename = name + ".json";
+        }else{
+            filename = name;
+        }
+        
         var text = this.loadText(filename);
         if(text !== undefined){
             try{
                 text = JSON.parse(text);
             }catch(e){
+                log("Error parsing json file :'"+filename+"'");
+                log(e.message);
                 text = undefined;
             }
         }

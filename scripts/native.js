@@ -1,6 +1,7 @@
 "use strict";
 // NW support for native app 
 const DEBUG = 1==0?true:false;
+const QUIET_CONSOLE = false;
 var gui = require("nw.gui");
 var fileSystem = require('fs');
 var path = require('path');
@@ -23,8 +24,11 @@ path.addFilename2Path = function(dest,filename){
         name : filename.name
     }
 }
-var log = function(data){
+var log = function(data){  // some apps may redefine this function
     if(DEBUG){
+        console.log(data);
+    }else
+    if(!QUIET_CONSOLE){
         console.log(data);
     }
 }

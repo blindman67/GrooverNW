@@ -1,8 +1,8 @@
 {
     "applicationName" : "TestApp",
-    "description" : "GrooverNW test app."
+    "description" : "GrooverNW test app.",
     "version" : "0",
     "JavaScript" : {
-         "applicationFilename" : "TestApp.js"
+         "filesnames" : ["TestApp.js"]
     }
 }

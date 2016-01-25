@@ -5,25 +5,32 @@ if(DEBUG){
     groover.win.showDevTools();
 }
 (function(){
-    function Groover(){
+    function Groover(app){
         var failedStartup = false;
         groover.session.ID = groover.utils.IDS.getGUID();
         log("Groover started. SID:"+groover.session.ID); 
         groover.main = this;
-        this.currentApp = groover.utils.files.loadJson("currentApp");
-        if(this.currentApp === undefined){
-            window.alert("Failed to find current application. Exiting now!");
+        if(!groover.code.loadApplication(app)){
+            alert("Failed to load app");
+            return;
             failedStartup = true;
-        }else
-        if(this.currentApp.run !== undefined && typeof this.currentApp.run === "string"){
-            
         }else{
-            window.alert("Current application `currentApp.json` is missformed. Can not start, Exiting!");
-            failedStartup = true;
-            
-        }
-            
-        
+            if(groover.application === undefined){
+                alert("Application parsed but did not register");
+                return;
+            }
+            if(typeof groover.application !== "function"){
+                alert("Loaded application is not a function???");
+                return;
+            }
+            if(groover.application.prototype.update === undefined || typeof groover.application.prototype.update !== "function"){
+                groover.application.prototype.update = function(){};
+            }
+            if(groover.application.prototype.display === undefined || typeof groover.application.prototype.display !== "function"){
+                groover.application.prototype.display = function(){};
+            }
+        }      
+
         
         if(failedStartup){
             nw.App.quit();
@@ -35,7 +42,7 @@ if(DEBUG){
         moduals.push(this.view = new View(this));
         moduals.push(this.render = new Render(this));
         moduals.push(this.ui = new UI(this));
-        moduals.push(this.editor = new SpriteEditor(this));
+        moduals.push(this.app = new groover.application(this));
         new DropManager(document.body, this.fileDropped.bind(this), [DropManager.prototype.mimeTypes.all]);
         //groover.win.maximize();
         window.addEventListener("resize",this.resize.bind(this));
@@ -59,8 +66,8 @@ if(DEBUG){
         groover.loader.progress(1);
         new DropManager(document.body, this.fileDropped.bind(this), [DropManager.prototype.mimeTypes.all]);
         this.animFrame.addFrameStartFunction(this.ui.update.bind(this.ui));
-        this.animFrame.addFrameStartFunction(this.editor.update.bind(this.editor));
-        this.animFrame.addFrameEndFunction(this.editor.display.bind(this.editor));
+        this.animFrame.addFrameStartFunction(this.app.update.bind(this.app));
+        this.animFrame.addFrameEndFunction(this.app.display.bind(this.app));
         this.animFrame.addFrameEndFunction(this.ui.display.bind(this.ui));
         this.animFrame.addFrameEndFunction(this.mouseKeyboard.doCursor.bind(this.mouseKeyboard));
         groover.busy = true;
@@ -84,11 +91,23 @@ if(DEBUG){
     Groover.prototype.fileDropped = function(file){
         console.log(file);
         if(file.type.indexOf("image/") > -1 || file.type.indexOf("video/") > -1){
-            this.editor.imageToLoad(file);
+            if(typeof this.app.imageDropped === "function"){
+                this.app.imageDropped(file);
+            }
         }
         //groover.dialogs.imageLoader(file);
     }
     window.addEventListener("load",function(){
-        new Groover();
+        var app;
+        groover.settings = groover.utils.files.loadJson("settings");
+        log(groover.settings.version);
+        groover.code.modualDir = process.cwd() + groover.settings.modualsDirectory;
+        groover.code.applicationDir = process.cwd() + groover.settings.applicationDirectory;
+        nw.App.argv.forEach(function(arg){
+            if(arg.indexOf("app=") > -1){
+                app = arg.split("=")[1];
+            }
+        });
+        new Groover(app);
     });
 })();

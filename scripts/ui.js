@@ -4,7 +4,7 @@ function UI(owner){
     this.bitmaps = this.owner.bitmaps;
     this.render = this.owner.render;
     this.MK = this.owner.mouseKeyboard;
-    this.view = this.owner.display;
+    this.view = this.owner.view;
     this.icons = {};
     this.loadMedia();
     this.ready = false;
@@ -21,7 +21,9 @@ function UI(owner){
     this.setupToolTip();
 }
 
-
+UI.prototype.viewUpdated = function(){
+    
+}
 UI.prototype.update = function(){
 }
 UI.prototype.display = function(){
