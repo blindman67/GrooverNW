@@ -2,7 +2,7 @@
 function SpriteEditor(owner){
     this.owner = owner;
     this.time;
-    this.view = this.owner.display;
+    this.view = this.owner.view;
     this.render = this.owner.render;
     this.bitmaps = this.owner.bitmaps;
     this.MK = this.owner.mouseKeyboard;
@@ -373,7 +373,7 @@ function discovereLocation(id){
 
 
 SpriteEditor.prototype.lostView = function(){
-    this.view = this.owner.display;
+    this.view = this.owner.view;
     this.render = this.owner.render;  
     this.newView = true;
     log("new view");
@@ -383,11 +383,11 @@ SpriteEditor.prototype.iconsAvaliable = function(imageGroup){
     this.ready = true;
     log("Editor started");
 
-            this.imageToLoad("http://ws.cdn.bom.gov.au/radar/IDR702.T.201601162100.png");
+    this.imageToLoad("http://ws.cdn.bom.gov.au/radar/IDR702.T.201601162100.png");
 
     if(!groover.utils.files.saveText("WeatherProducts.json",JSON.stringify(weatherExtras.products))){
-    alert("File save error.\n" + groover.utils.files.error.filename +"\n"+groover.utils.files.error.message);
-}
+        alert("File save error.\n" + groover.utils.files.error.filename +"\n"+groover.utils.files.error.message);
+    }
     weatherExtras.setProduct("IDR704");
     log("Sprite editor ready");
 }
@@ -396,7 +396,6 @@ SpriteEditor.prototype.weatherAvaliable = function(imageGroup){
 }
 
 SpriteEditor.prototype.imageLoaded = function(imageGroup){
-    log("Image loaded");
     if(imageGroup.list[0].video){
         imageGroup.list[0].image.play();
         imageGroup.list[0].image.loop = true;
@@ -405,7 +404,7 @@ SpriteEditor.prototype.imageLoaded = function(imageGroup){
 
 }
 SpriteEditor.prototype.imageToLoad = function(file){
-        log("Image to load");
+       
 
     if(this.project === undefined){
         this.project = {

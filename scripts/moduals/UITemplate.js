@@ -1,4 +1,4 @@
-(function () {
+(function () {  // Template only
     var create = function (name,settings,UI,owner) {
         var tempX,tempY,tempH,tempW;
         if(owner === undefined){
@@ -20,6 +20,18 @@
         // if not loading sprites then call uiReady manualy
         UI.icons = UI.bitmaps.startLoad(uiReady, "icons");
 
+        // for sprite callback data when image file needs to be cut into sprites
+        // see butmaps.js for more information.
+        /*
+        var charcterSetData = {
+            spriteCutter:{
+                how:"grid",
+                pixelWidth : 10,
+                pixelHeight : 10,
+                repackWidth : true,
+            }
+        };*/        
+        
         var ui = {
             owner : owner,
             name : name,
@@ -34,7 +46,7 @@
                     tempX = x;
                     tempY = y;
                     tempH = h;
-                    tempW = data.width;
+                    tempW = settings.width;
                 }
             }, // stub till ready to set location
             setup : function () {
@@ -54,7 +66,7 @@
             },            
             display : function () {
                 var l = this.location;
-                rend.drawBitmapSize(this.canvas, l.x, l.y, l.w, l.h, a);
+                this.owner.render.drawBitmapSize(this.canvas, l.x, l.y, l.w, l.h, l.alpha);
             }
         }
         ui.mouse = UI.createMouseInterface(ui);

@@ -1,4 +1,4 @@
-(function () {
+(function () {  // CheckBox UI
     var create = function (name,settings,UI,owner) {
         var tempX,tempY,tempH,tempW;
         if(owner === undefined){

@@ -1,7 +1,7 @@
 "use strict";
 function Render(owner){
     this.owner = owner;
-    this.view = this.owner.display;
+    this.view = this.owner.view;
     this.ready = true;
     this.currentTarget;
     log("Render manager ready");
@@ -14,7 +14,7 @@ function Render(owner){
     var h,h2;
     var sources = "source-over,lighter,darker,source-atop,source-in,source-out,destination-over,destination-atop,destination-in,destination-out,copy,xor,multiply,screen,overlay,color-dodge,color-burn,hard-light,soft-light,difference,exclusion,hue,saturation,color,luminosity".split(",");
 
-    this.displayUpdate = function(){
+    this.viewUpdated = function(){
         ctx = this.view.ctx;
         this.currentTarget = this.view;
         ctx.renderer = this;

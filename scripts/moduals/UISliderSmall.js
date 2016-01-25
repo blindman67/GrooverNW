@@ -1,4 +1,4 @@
-(function () {
+(function () {  // Slider Small UI
     var create = function (name,data,UI,owner) {
         var tempX,tempY,tempH,tempW;
         if(owner === undefined){
@@ -28,7 +28,6 @@
             max : data.max,
             value : data.min,
             oldValue : null,
-            pixelValue : 0,
             dirty : true,
             sprites : UI.bitmaps.load("icons", "icons/SliderSmall.png", "sliderSpritesSmall", UI.bitmaps.onLoadCreateSprites.bind(UI.bitmaps)),
             canvas : null,
@@ -50,6 +49,7 @@
                 this.canvas = this.owner.createCanvas(data.width, 12);
             },
             redraw : function(){
+                var img = this.sprites.image;
                 var w = this.canvas.width;
                 var wn = w - this.numWidth;
                 var pos = Math.round(((this.value - this.min) / (this.max - this.min)) * (wn - 4) + 2);

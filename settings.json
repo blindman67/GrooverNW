@@ -1,0 +1,4 @@
+{
+    description : "Groover settings. This is only for groover and not for the app it is running.",
+    applicationDirectory : "apps",
+}

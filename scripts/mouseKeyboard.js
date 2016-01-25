@@ -76,7 +76,7 @@ function MouseKeyboard(owner){
     var mouseEventList = "mousemove,mousedown,mouseup,mouseout,mouseover,mousewheel".split(",");
     var keyEventList = "keypress".split(",");
     this.mainCanvas;
-    this.displayUpdate = function(){
+    this.viewUpdated = function(){
         var can = this.owner.canvas;
         var listener = this.mouseEvent.bind(this);
         var listenerK = this.keyEvent.bind(this);

@@ -1,38 +1,40 @@
 "use strict";
-function Display(owner){
+function View(owner){
     this.owner = owner;
     this.width;    
     this.height;    
     this.ctx;  // main display
-    this.displayList = [];
+    this.views = [];
     this.render;
     this.refreshed = true;
     this.ready = true;
-    log("display manager ready");
+    log("View manager ready");
 }
-Display.prototype.refreshedDone = function(){
+View.prototype.refreshedDone = function(){
     this.refreshed = false;
-    log("Display refreshed");
+    log("View refreshed");
 }
-Display.prototype.refresh = function(){
+View.prototype.refresh = function(){
     this.canvas = this.owner.canvas;
     this.ctx = this.owner.canvas.ctx;
     this.width = this.owner.canvas.width;
     this.height = this.owner.canvas.height;
     this.render = this.owner.render;
     this.refreshed = true;
-    this.owner.mouseKeyboard.displayUpdate();
-    this.render.displayUpdate();
+    if(this.owner.mouseKeyboard !== undefined && this.owner.mouseKeyboard.viewUpdated !== undefined){
+        this.owner.mouseKeyboard.viewUpdated();
+    }
+    this.render.viewUpdated();
     
 }
 
-Display.prototype.createDisplay = function(width,height){
+View.prototype.create = function(width,height){
     var frame = {};
     frame.image = $C("canvas");
     frame.image.width = width;
     frame.image.height = height;
     frame.ctx = frame.image.getContext("2d");
-    this.displayList.push(frame);
+    this.views.push(frame);
     return frame;
     
     

@@ -1,4 +1,4 @@
-(function(){
+(function(){  // Basic log display UI
     
     var create = function(name,settings,UI,owner){
         if(owner === undefined){
@@ -42,18 +42,17 @@
                 var dLen, len, h, i, lineHeight;
                 lineHeight = settings.lineHeight;
                 len = this.messages.length;
-                dlen = len - settings.displayLines
+                dlen = len - settings.displayLines;
                 h = Math.floor((settings.displayLines/len)*(this.canvas.height-2));
                 c.clearRect(0,0,this.canvas.width,this.canvas.height);
                 c.fillStyle = "rgba(128,128,128,0.63)";
                 c.fillRect(this.canvas.width-8,0,8,this.canvas.height);
                 c.fillStyle = "rgba(100,128,100,0.93)";
                 c.fillRect(this.canvas.width-7,this.canvas.height-1-h,6,h);
-                len - settings.displayLines
                 for(i = len - 1; i >= dlen && i > -1; i--){
                     c.fillStyle = this.messages[i].colour;
                     c.strokeText(this.messages[i].text,5,(i-dlen+1)*lineHeight);
-                    c.fillText(this.messages[i].text,5,(i-dlen+1*lineHeight-1);
+                    c.fillText(this.messages[i].text,5,(i-dlen+1)*lineHeight-1);
                 }
                 this.dirty = false;
             },

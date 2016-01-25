@@ -45,7 +45,13 @@ Bitmaps.prototype.getGroup = function(group){
 Bitmaps.prototype.groupLoadedImage = function(group,image,status){
     if(image.callback !== undefined){
         image.callback(status,image,group);
-    }    
+    }else
+    if(image.callbacks !== undefined){
+        while(image.callbacks.length > 0){
+            image.callbacks.shift()(status,image,group);
+        }
+    }
+        
     group.loadingCount -= 1;
     if(group.loadingCount === 0){
         this.cleanImageGroup(group);
@@ -65,18 +71,11 @@ Bitmaps.prototype.imageEvent = function(event){
             var image = img.self;
             image.ready = true;
             var group = image.group;
-            group.fresh.push(image);
-            if(image.name !== undefined){
-                if(group.named === undefined){
-                    group.named = {};
-                }
-                group.named[image.name] = image;
-            }                
+            group.fresh.push(image);             
             if(image.video){
                 image.image.muted = true;
                 image.image.height =image.image.videoHeight;
                 image.image.width = image.image.videoWidth;
-                log(event)
             }
             this.groupLoadedImage(group,image,null);
         }
@@ -89,7 +88,7 @@ Bitmaps.prototype.imageEvent = function(event){
             img.self = undefined;
             image.ready = false;
             image.failed = true;
-            log("Failed to load image:'"+image.filename+"'");
+            //log("Failed to load image:'"+image.filename+"'");
             var group = image.group;
             this.groupLoadedImage(group,image,"error");       
         }        
@@ -110,11 +109,27 @@ Bitmaps.prototype.load = function(group,filename,name,callback,data){
     if(name !== undefined && typeof name === "string"){  // if a named image check if it exists
         if(imageGroup.named !== undefined){
             if(imageGroup.named[name] !== undefined){
-                /// already loaded
-                imageGroup.named[name].callback = callback;
-                imageGroup.loadingCount += 1;
-                this.groupLoadedImage(imageGroup,imageGroup.named[name],null);
-                return;
+                image = imageGroup.named[name];
+                if(image.ready){
+                    image.callback = callback;
+                    imageGroup.loadingCount += 1;
+                    this.groupLoadedImage(imageGroup,image,null);
+                    return image;
+                }else
+                if(image.failed){ // Need to workout what to do with failed images
+            
+                }else{   // image is still loading                    
+                    if(image.callback !== undefined){
+                        image.callbacks = [image.callback,callback];
+                    }else
+                    if(image.callbacks !== undefined){
+                        image.callbacks.push(callback);
+                    }else{
+                        image.callback = callback;
+                    }
+                    return image;
+                        
+                }
             }
         }
     }
@@ -153,7 +168,6 @@ Bitmaps.prototype.load = function(group,filename,name,callback,data){
         image.image.src = filename;
         image.image.oncanplay = this.iEvent;
         image.image.onerror = this.iEvent;
-        log("Loading Video");
     }else{    
         image = {
             image : new Image(),
@@ -164,12 +178,18 @@ Bitmaps.prototype.load = function(group,filename,name,callback,data){
     }
     image.image.self = image;    
     image.filename = filename;
-    image.name = name;
     if(image.image.data === undefined && data !== undefined){
         image.data = data;
     }
     image.group = imageGroup;
     image.callback = callback;
+    image.name = name;
+    if(image.name !== undefined){  // add named image to group's named list
+        if(image.group.named === undefined){
+            image.group.named = {};
+        }
+        image.group.named[image.name] = image;
+    }      
     imageGroup.list.push(image);
     imageGroup.loadingCount += 1;
     return image;
@@ -489,6 +509,8 @@ Bitmaps.prototype.horizontalSpriteCutter = function(image){
     if(image.animation || image.video){
         return undefined;
     }
+    log("Horizontal sprite cutter on: '"+ image.filename + "'");
+    
     sprites = [];
     w = image.image.width;
     h = image.image.height;
@@ -539,7 +561,7 @@ Bitmaps.prototype.gridSpriteCutter = function(image){
     if(image.animation || image.video){
         return undefined;
     }
-    log("Grid sprite on: '"+ image.filename + "'");
+    log("Grid sprite cutter on: '"+ image.filename + "'");
     sprites = [];
     w = image.image.width;
     h = image.image.height;
@@ -800,17 +822,11 @@ groover.animation = function(){
                     delay:loading[i].delay,
                     data:loading[i].data,
                 });
-                console.log(loading[i].data);
-                log("Added frame "+i);
                 if(animation.frames.length === 1){
-                    log("Fired onlod "+i);
                     fireOnload();
                 }
-                log("groover.animation:stackFrames:i="+i+" loading[i].src= "+loading[i].image.src);
             }else
             if(animation.ignoreMissing && loading[i].error){
-                log("Skip stack entry");
-                
             }else{
                 return;
             }

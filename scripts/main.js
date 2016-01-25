@@ -6,14 +6,33 @@ if(DEBUG){
 }
 (function(){
     function Groover(){
+        var failedStartup = false;
         groover.session.ID = groover.utils.IDS.getGUID();
         log("Groover started. SID:"+groover.session.ID); 
         groover.main = this;
+        this.currentApp = groover.utils.files.loadJson("currentApp");
+        if(this.currentApp === undefined){
+            window.alert("Failed to find current application. Exiting now!");
+            failedStartup = true;
+        }else
+        if(this.currentApp.run !== undefined && typeof this.currentApp.run === "string"){
+            
+        }else{
+            window.alert("Current application `currentApp.json` is missformed. Can not start, Exiting!");
+            failedStartup = true;
+            
+        }
+            
+        
+        
+        if(failedStartup){
+            nw.App.quit();
+        }
         var moduals = [];
         moduals.push(this.animFrame = new AnimFrame(this));  
         moduals.push(this.mouseKeyboard = new MouseKeyboard(this));
         moduals.push(this.bitmaps = new Bitmaps(this));
-        moduals.push(this.display = new Display(this));
+        moduals.push(this.view = new View(this));
         moduals.push(this.render = new Render(this));
         moduals.push(this.ui = new UI(this));
         moduals.push(this.editor = new SpriteEditor(this));
@@ -52,13 +71,14 @@ if(DEBUG){
         setTimeout(this.resize.bind(this),100);
     }
     Groover.prototype.ready = function(){
-        this.display.refresh();
-        this.animFrame.addFrameEndStackFunction(this.display.refreshedDone.bind(this.display));
+        this.view.refresh();
+        this.animFrame.addFrameEndStackFunction(this.view.refreshedDone.bind(this.view));
         this.animFrame.start();
         log("Loaded and frames grooving");
     }
     Groover.prototype.resize = function(){
         this.canvas = groover.createCanvas();
+        $A(this.canvas);
         this.ready();
     }
     Groover.prototype.fileDropped = function(file){

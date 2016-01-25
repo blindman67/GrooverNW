@@ -59,17 +59,7 @@ groover.createCanvas = function(type){  // defaults to fullscreen no other types
     canvas.ctx = canvas.getContext("2d"); 
     return canvas;
 };
-groover.directories = {
-    scratch : path.parse("D:\\temp\\Groover"),
-    currentProject : {
-        images : path.parse("D:\\Marks\\Groover\\TestProject\\Images"),
-        sounds : path.parse("D:\\Marks\\Groover\\TestProject\\Sounds"),
-        movies : path.parse("D:\\Marks\\Groover\\TestProject\\Movies"),
-        scratch : path.parse("D:\\Marks\\Groover\\TestProject\\Temp"),
-        animation : path.parse("D:\\Marks\\Groover\\TestProject\\Animation"),
-    },
-    home : path.parse("D:\\Marks\\Dev\\GrooverNW"),
-};
+
 groover.author = {
     details: {
         author    : "Mark Sppronck",
@@ -722,7 +712,7 @@ groover.code = {
         modual += code;
         modual += "\n\n";
         modual += "console.log('Modual "+name+" for console referance.');\n";
-        modual += "groover.code.parsed = true";
+        modual += "groover.code.parsed = true;\n";
         groover.code.parsed = false;
 
         try{  // add code to the web page and run 
@@ -769,6 +759,19 @@ groover.code = {
     
 };
 
+
+// bad name will move soon
+groover.directories = {
+    scratch : path.parse("D:\\temp\\Groover"),
+    currentProject : {
+        images : path.parse("D:\\Marks\\Groover\\TestProject\\Images"),
+        sounds : path.parse("D:\\Marks\\Groover\\TestProject\\Sounds"),
+        movies : path.parse("D:\\Marks\\Groover\\TestProject\\Movies"),
+        scratch : path.parse("D:\\Marks\\Groover\\TestProject\\Temp"),
+        animation : path.parse("D:\\Marks\\Groover\\TestProject\\Animation"),
+    },
+    home : path.parse("D:\\Marks\\Dev\\GrooverNW"),
+};
 groover.utils.files = {
     error : {
         error : false,
@@ -776,6 +779,8 @@ groover.utils.files = {
         filename : "",
     },
     imageSaveDirectory : "D:\\Marks\\JavaScript\\GameEngine\\July2015",
+    OSDelimiter : "\\",
+    
     currentDirectory : process.cwd(),
     saveText : function(filename,text,replace){
         var fileStats,dirStats;
@@ -798,7 +803,7 @@ groover.utils.files = {
         if(filename.ext === ""){
             filename.ext = ".txt";
         }
-        filename = filename.dir + "\\" + filename.name + filename.ext;
+        filename = filename.dir + this.OSDelimiter + filename.name + filename.ext;
 
         if(replace !== undefined && !replace ){
             try{
@@ -844,7 +849,7 @@ groover.utils.files = {
         if(filename.ext === ""){
             filename.ext = ".txt";
         }
-        filename = filename.dir + "\\" + filename.name + filename.ext;
+        filename = filename.dir + this.OSDelimiter + filename.name + filename.ext;
 
         try{
             fileStats = fileSystem.statSync(filename);
@@ -863,14 +868,35 @@ groover.utils.files = {
             this.error.error = true;
             return undefined;
         }
-        log("file read " + filename);  
         return text;        
         
     },
-    laodJson : function (name){
+    resolveFilename : function (filename){
+        var filePath;
+        filePath = path.parse(filename);
+        if(filePath.dir === ""){
+            filePath.dir = this.currentDirectory;
+        }
+        filename = filePath.dir + this.OSDelimiter + filePath.name + filePath.ext;
+    },
+    doesFileExist : function (filename){
+        filename = path.parse(filename);
+        if(filename.dir === ""){
+            filename.dir = this.currentDirectory;
+        }
+        filename = filename.dir + this.OSDelimiter + filename.name + filename.ext;
+        try{
+            fileStats = fileSystem.statSync(filename);
+        }catch(e){
+            
+            return false;
+        }
+        return true;
+    },
+    loadJson : function (name){
         var filename;
         filename = name + ".json";
-        var text = this.loadFile(filename);
+        var text = this.loadText(filename);
         if(text !== undefined){
             try{
                 text = JSON.parse(text);
@@ -888,7 +914,7 @@ groover.utils.files = {
         }catch(e){
             return false;
         }
-        return this.saveFile(filename,text);
+        return this.saveText(filename,text);
     }
     
 }
