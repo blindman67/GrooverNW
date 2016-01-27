@@ -3,7 +3,7 @@ function AnimFrame(owner){
     this.owner = owner;
     this.manual = false;
     this.manualFrameRate = 10;
-    this.pause = false;
+    this.paused = false;
     this.stopped = false;
     this.active = false;
     this.pauseMonitorRate = 10;
@@ -36,28 +36,42 @@ AnimFrame.prototype.addFrameEndStackFunction = function(func){
     this.frameEndStack.push(func);
 }
 AnimFrame.prototype.stop = function(){
-    this.pause = true;
+    this.paused = true;
     this.stopped = true;
 }
 AnimFrame.prototype.start = function(){
     if(!this.active){
+        this.time = new Date().valueOf();
         this.active = true;
         this.stopped = false;
-        this.update();
+        this.update(this.time);
     }
 }
+AnimFrame.prototype.pause = function(){
+    this.paused = true;
+    this.stopped = true;
+}
+AnimFrame.prototype.unpause = function(){
+    this.paused = false;    
+}
+
 AnimFrame.prototype.pauseMonitor = function(){
     this.time = new Date().valueOf();
-    if(this.pause){
+    if(this.paused){
         if(!this.stopped){
-            setTimeout(this.update, Math.floor(1000 / this.pauseMonitorRate));        
+            setTimeout(this.manualRefresh, Math.floor(1000 / this.pauseMonitorRate));        
         }else{
             this.active = false;
         }
     }else{
-        this.update();
+        this.update(this.time);
     }
 }
+AnimFrame.prototype.manualRefresh = function(){
+    this.time = new Date().valueOf();
+    this.update(this.time);
+}
+
 AnimFrame.prototype.refresh = function(time){
     var startF,endF,len,i,endS,td;
     this.frameID += 1;
@@ -75,11 +89,11 @@ AnimFrame.prototype.refresh = function(time){
     }else{
         this.time = new Date().valueOf();
     }
-    if(this.pause){
+    if(this.paused){
         this.pauseUpdate();
     }else{
         if(this.manual){
-            setTimeout(this.update, Math.floor(1000 / this.manualFrameRate));
+            setTimeout(this.manualRefresh, Math.floor(1000 / this.manualFrameRate));
         }else{
             requestAnimationFrame(this.update);
         }
@@ -87,16 +101,16 @@ AnimFrame.prototype.refresh = function(time){
     startF = this.frameStart;
     len = startF.length;
     for(i = 0; i < len; i+=1){
-        startF[i]();
+        startF[i](time);
     } 
     endF = this.frameEnd;
     len = endF.length;
     for(i = 0; i < len; i+=1){
-        endF[i]();
+        endF[i](time);
     }
     endS = this.frameEndStack;
     while(endS.length > 0){
-        endS.shift()();
+        endS.shift()(time);
     }
 }
 

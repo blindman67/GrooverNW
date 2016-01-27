@@ -9,6 +9,39 @@ function Bitmaps(owner){
     this.ready = true;
     log("Bitmap manager ready");
 }
+Bitmaps.prototype.imageTools = {
+    canvas : function (width, height) {  // create a blank image (canvas)
+        var c = document.createElement("canvas");
+        c.width = width;
+        c.height = height;
+        return c;
+    },
+    createImage : function (width, height) {
+        var image = this.canvas(width, height);
+        image.ctx = image.getContext("2d");
+        return image;
+    },
+    loadImage : function (url, callback) {
+        var image = new Image();
+        image.src = url;
+        image.addEventListener('load', cb);
+        image.addEventListener('error', cb);
+        return image;
+    },
+    image2Canvas : function (img) {
+        var image = this.canvas(img.width, img.height);
+        image.ctx = image.getContext("2d");
+        image.drawImage(ig, 0, 0);
+        return image;
+    },
+    imageDat : function (image) { // returns only the data. You can not put it back 
+        return (image.ctx || (this.image2Canvas(image).ctx)).getImageData(0, 0, image.width, image.height).data;
+    },    
+    imageData : function (image) {
+        return (image.ctx || (this.image2Canvas(image).ctx)).getImageData(0, 0, image.width, image.height);
+    },    
+}
+
 Bitmaps.prototype.createImageGroup = function(name){
     this.imageGroups[name] = {
         list : [],
@@ -103,9 +136,27 @@ Bitmaps.prototype.startLoad = function(callback,group){
     }
     return imageGroup;
 }
+
+// load an image animation, movie, gif.
+// group is the name (as string) of the group that the image will be stored in.
+// filename (as string is the filename of the image)
+// filename (as image is an image that will be attached to the group)
+// [name] optional. Is the name of the image. If the name is given then the function will
+//                  check if it exists already and use the existing (loaded or not) image reather then duplicate it
+// [callback]  optional is the callback that is called when the image has loaded or there is an error
+//           the callback will be passed two arguments the first is null is no error and second is the
+//           image container.
+// [data] optional data to be attached to the image or animation.
+//
+// returns the imageContainer.
+// each image type has differing requierments so check out the examples to see how to use
+//
+
+
 Bitmaps.prototype.load = function(group,filename,name,callback,data){
     var image, imageGroup;
     imageGroup = this.getGroup(group);
+
     if(name !== undefined && typeof name === "string"){  // if a named image check if it exists
         if(imageGroup.named !== undefined){
             if(imageGroup.named[name] !== undefined){
@@ -117,7 +168,7 @@ Bitmaps.prototype.load = function(group,filename,name,callback,data){
                     return image;
                 }else
                 if(image.failed){ // Need to workout what to do with failed images
-            
+                    return image;
                 }else{   // image is still loading                    
                     if(image.callback !== undefined){
                         image.callbacks = [image.callback,callback];
@@ -133,7 +184,7 @@ Bitmaps.prototype.load = function(group,filename,name,callback,data){
             }
         }
     }
-    if(typeof filename !== "string" && filename.length){
+    if(typeof filename !== "string" && filename.length !== undefined){
         image = {
             image : new groover.animation(),
             animation : true,
@@ -147,6 +198,18 @@ Bitmaps.prototype.load = function(group,filename,name,callback,data){
         };
         image.image.load();
     }else
+    if(typeof filename !== "string"){
+        if(filename.ctx !== undefined || filename.src !== undefined){
+            image = {
+                image : filename,
+            };
+            filename = "";
+            var iE = this.iEvent;
+            setTimeout(function(){ iE.bind(image.image)({type:"load",path:[image.image]})},10);
+        }else{
+            throw new Error("Bitmaps load passed a bad filename argument");
+        }
+    }else    
     if(filename.toLowerCase().indexOf(".gif") > -1){  // this is an animated gif
         image = {
             image : new groover.GIF(),

@@ -10,17 +10,19 @@ if(DEBUG){
         groover.session.ID = groover.utils.IDS.getGUID();
         log("Groover started. SID:"+groover.session.ID); 
         groover.main = this;
+
         if(!groover.code.loadApplication(app)){
-            alert("Failed to load app");
+            groover.loader.showInfo("<h1>Failed to load application.</h1>Groover could not find, load or there was a parsing error for the application named '<b>"+app+"</b>'<br>Check you have entered the correct command line arguments and that the application directory exists\nRight click to inspect the console for more details on this error.");
             return;
             failedStartup = true;
         }else{
+
             if(groover.application === undefined){
-                alert("Application parsed but did not register");
+                groover.loader.showInfo("<h1>Application parsed but did not register its self.</h1>Groover found and loaded the applicarion named '<b>"+app+"</b>'<br>but the app did not register its self as the named variable '<b>groover.application</b>'</br>I can not run what I do not know..<br>");
                 return;
             }
             if(typeof groover.application !== "function"){
-                alert("Loaded application is not a function???");
+                groover.loader.showInfo("<h1>Loaded application is not a function???</h1>Groover found and loaded the applicarion named '<b>"+app+"</b>'<br>but the reqistered application function is not a function. </br>I can to makr you run if you have no legs.");
                 return;
             }
             if(groover.application.prototype.update === undefined || typeof groover.application.prototype.update !== "function"){

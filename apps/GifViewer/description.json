@@ -1,0 +1,9 @@
+{
+    "applicationName" : "Gif viewer",
+    "description" : "GrooverNW Application for viewing GIF images.",
+    "version" : "1",
+    "JavaScript" : {
+         "scripts" : ["GifViewer.js"], 
+         "moduals" : []                            
+    }
+}

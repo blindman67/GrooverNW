@@ -10,6 +10,16 @@ groover.loader = {
             document.body.removeChild(s);
         }
     },
+    showInfo : function(info){
+        this.clearSplash();
+        var splash = $C("div","splash","splashInfo");
+        var infoEl = $C("div","splashExtra","extraInfo");
+        infoEl.innerHTML = info;
+        splash.innerHTML += "<img src='icons/groover.png'><br><br><br><br>"
+        $A(splash,infoEl);
+        splash.innerHTML += "<small>Copyright 2016</small>";
+        $A(splash)    
+    },
     busy:function(){
         if(groover.busy){
             

@@ -49,9 +49,11 @@ function MouseKeyboard(owner){
     this.shift = false;
     this.ctrl = false;
     this.lastKey;
+    this.keyEvents = [];
     this.keys = [];
     for (var i = 0; i < 256; i++) {
 		this.keys[i] = false;
+        this.keyEvents[i] = undefined;
     }
     this.B1 = 0;
     this.B2 = 0;
@@ -74,7 +76,7 @@ function MouseKeyboard(owner){
     this.over = false;
     this.ready = true;
     var mouseEventList = "mousemove,mousedown,mouseup,mouseout,mouseover,mousewheel".split(",");
-    var keyEventList = "keypress".split(",");
+    var keyEventList = ["keypress"];
     this.mainCanvas;
     this.viewUpdated = function(){
         if(this.mainCanvas !== undefined){
@@ -149,14 +151,24 @@ function MouseKeyboard(owner){
 MouseKeyboard.prototype.preventDefault = function(e){
     e.preventDefault();
 }
+MouseKeyboard.prototype.addKeyCallback = function(key,callback){
+    if(key >= 0 && key < 256){
+        this.keyEvents[key] = callback;
+    }
+}
+
 MouseKeyboard.prototype.keyEvent = function(e){
     console.log(e)
     this.shift = e.shiftKey;
     this.alt = e.altKey;
     this.ctrl = e.ctrlKey;
-    if(e.type === "keydown" || e.type === "keypress"){
+    log("Key:" + e.keyCode,"cyan");
+    if(e.type === "keypress"){
         this.lastKey = e.keyCode;
         this.keys[e.keyCode] = true;
+        if(this.keyEvents[e.keyCode] !== undefined && typeof this.keyEvents[e.keyCode] === "function"){
+            this.keyEvents[e.keyCode](e);
+        }
     }else{
         this.keys[e.keyCode] = false;        
     }

@@ -3,6 +3,7 @@
     "description" : "GrooverNW test app.",
     "version" : "0",
     "JavaScript" : {
-         "filesnames" : ["TestApp.js"]
+         "scripts" : ["TestApp.js"],
+         "moduals" : []
     }
 }

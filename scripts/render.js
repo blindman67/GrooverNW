@@ -120,6 +120,11 @@ function Render(owner){
         ctx.setTransform(1, 0, 0, 1, x,y);
         ctx.drawImage(img,0,0);
     }
+    this.drawBitmapA = function(img,x,y,alpha){
+        ctx.globalAlpha = alpha * globalAlpha;
+        ctx.setTransform(1, 0, 0, 1, x,y);
+        ctx.drawImage(img,0,0);
+    }
     this.drawBitmapPart = function(img,x,y,fx,fy,fw,fh,alpha){
         ctx.globalAlpha = alpha * globalAlpha;
         ctx.setTransform(1, 0, 0, 1, x,y);

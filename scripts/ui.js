@@ -18,6 +18,7 @@ function UI(owner){
     this.startLoad = function(ui){
 
     }
+    
     this.setupToolTip();
 }
 
@@ -128,7 +129,9 @@ UI.prototype.createLocationInterface = function(owner,group){
     return {
         owner : owner,
         group : group,
+
         set: function(x,y,w,h){
+  
             if(x !== null && x !== undefined){
                 this.x = x;
             }
@@ -155,11 +158,15 @@ UI.prototype.createLocationInterface = function(owner,group){
                 this.group.recaculateBounds();
             }
         },
+        sx : 1,
+        sy : 1,
         x:0,
         y:0,
         w:0,
         h:0,
         alpha : 1,
+
+            
     };    
 }
 UI.prototype.createMouseInterface = function(owner,canHoldMouse){
@@ -277,6 +284,7 @@ UI.prototype.UIGroup = function(name,data,owner){
                 this.updateList[this.updateList.length] = UILocation.owner;
             }
         },
+
         recaculateBounds : function(){
             var i, len, xm, xM, ym, yM,item;
             len = this.items.length;

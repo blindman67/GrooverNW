@@ -163,6 +163,7 @@ groover.GIF = function(){
         gif.frames.push(frame);
         frame.disposalMethod = gif.disposalMethod;
         frame.delay = gif.delayTime;
+        gif.totalDelay += frame.delay;
         if(gif.transparencyGiven){
             frame.transparencyIndex = gif.transparencyIndex;
         }else{
@@ -267,6 +268,9 @@ groover.GIF = function(){
                 gif.transparencyIndex =  undefined;     
                 gif.waitTillDone = undefined;
                 doOnloadEvent();
+                if(typeof gif.onloadall === "function"){
+                    (gif.onloadall.bind(gif))({type : 'loadall', path : [gif]});
+                }
                 return;
             case 0x21: // extened block 
             default:
@@ -310,11 +314,17 @@ groover.GIF = function(){
         onload : null,
         onerror : null,
         onprogress : null,
+        onloadall : null,
         load : loadGif,
         waitTillDone : false,
         width : null,
         height : null,
         frames : [],
+        comment : "",
+        totalDelay : 0,
+        currentFrame : 0,
+        lastFrameAt : new Date().valueOf(),
+        nextFrameAt : new Date().valueOf(),
     };
     return gif;
 }

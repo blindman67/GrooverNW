@@ -5,6 +5,16 @@ body {
     background: url(icons/backgroundchecker.png);
     background-size: 24px 24px;
     background-repeat: repeat;
+    font: message-box;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: normal;
+    font-stretch: normal;
+    font-size: 16px;
+    line-height: normal;
+    font-family: Arial;   
+    
+    
 }
 
 
@@ -89,6 +99,16 @@ div.imgContainer {
     font-size: large;
     color: white;
 }
+.splashExtra H1 {
+    font-size: x-large;
+    color: white;
+    
+}
+.splashExtra b {
+    font-size:  large;
+    color: #A8FF93;    
+}
+
 .dots {
     margin: 39px auto 0;
     width: 119px;

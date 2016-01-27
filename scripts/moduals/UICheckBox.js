@@ -31,6 +31,20 @@
             owner : owner,
             name : name,
             checked : settings.checked,
+            setChecked : function (value){
+                if(this.checked !== value){
+                    this.checked = value;
+                    this.dirty = true;
+                    if(this.checked && this.onchecked){
+                        this.onchecked(this);
+                    }else
+                    if(!this.checked && this.onunchecked){
+                        this.onunchecked(this);
+                    }                    
+                }
+            },
+            check : function(){this.setChecked(true);},
+            uncheck : function(){this.setChecked(false);},
             toolTip : settings.toolTip,
             text : settings.text,
             ready : false,
@@ -77,7 +91,7 @@
                     this.canvas = this.owner.createCanvas(settings.width, this.sprites.image.height);
                     this.location.set();
                 }
-            },
+            },            
             redraw : function(){
                 var rend = this.owner.render;
                 var img = this.sprites.image;
@@ -112,20 +126,12 @@
                             m.mouse.oldB1 = false;
                             m.releaseMouse();
                             if(m.over){
-                                this.checked = ! this.checked;
-                                this.dirty = true;
-                                if(this.checked && this.onchecked){
-                                    this.onchecked(this);
-                                }else
-                                if(!this.checked && this.onunchecked){
-                                    this.onunchecked(this);
-                                }
+                                this.setChecked(! this.checked);
                             }
                         }
                     }
                     if(this.dirty){
                         this.redraw();
-                       
                     }
                 }
             },
