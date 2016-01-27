@@ -3,6 +3,7 @@
   "description": "Groover animation and editor.",
   "version": "0.1.0",
   "main": "groover.html",
+  "chromium-args": "--mixed-context",
   "window": {
     "toolbar": false,
     "icon": "/icons/Groover16.png",
