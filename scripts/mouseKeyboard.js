@@ -200,6 +200,20 @@ MouseKeyboard.prototype.mouseEvent = function(e){
         m["old"+bn] = m[bn];
         m[bn] = false;
     } else if (t === "mouseout") { 
+        m.oldBR = m.BR;
+        m.BR = 0;
+        if(m.B1){
+            m.oldB1 = true;
+            m.B1 = false;
+        }
+        if(m.B2){
+            m.oldB2 = true;
+            m.B2 = false;
+        }
+        if(m.B3){
+            m.oldB3 = true;
+            m.B3 = false;
+        }
         m.over = false;
     } else if (t === "mouseover") { 
         m.over = true;

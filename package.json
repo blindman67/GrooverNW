@@ -4,10 +4,14 @@
   "version": "0.1.0",
   "main": "groover.html",
   "chromium-args": "--mixed-context",
+  "node-remote":["<all_urls>"],
+  "bg-script":"scripts/background/background.js",
   "window": {
     "toolbar": false,
     "icon": "/icons/Groover16.png",
-    "title" : "Groover NW V0.1B (c)2016."
+    "title" : "Groover NW V0.1B (c)2016.",
+    "frame" : false,
+    "resizable" : "true"
   },
   "scripts": {
     "start": "nw ."

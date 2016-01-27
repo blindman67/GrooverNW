@@ -241,6 +241,12 @@ function Render(owner){
         var sp = image.sprites[spriteID % image.sprites.length];
         ctx.drawImage(image,sp.x,sp.y,sp.w,sp.h,0,0,w,sp.h);
     }      
+    this.drawSpriteAWH = function(image,spriteID, x, y,w,h,alpha) {
+        ctx.globalAlpha = alpha * globalAlpha;
+        ctx.setTransform(1, 0, 0, 1, x,y);
+        var sp = image.sprites[spriteID % image.sprites.length];
+        ctx.drawImage(image,sp.x,sp.y,sp.w,sp.h,0,0,w,h);
+    }      
     this.drawSpriteSRA = function(image,spriteID, x, y,s,ang,alpha) {
         ctx.globalAlpha = alpha * globalAlpha;
         ctx.setTransform(s, 0, 0, s, x,y);

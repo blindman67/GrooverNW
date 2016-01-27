@@ -4,6 +4,6 @@
     "applicationDirectory" : "\\apps",
     "scriptDirectory" : "\\scripts",
     "modualsDirectory" : "\\scripts\\moduals",
-    
+    "frameControls" : true,
     "dumbLuck" : true
 }

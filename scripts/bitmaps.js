@@ -634,8 +634,8 @@ Bitmaps.prototype.gridSpriteCutter = function(image){
          hCount = Math.floor(h/pixelH);
          wCount = Math.floor(w/pixelW);         
     }else{
-         hCount = image.data.spriteCutter.widthCount;
-         wCount = image.data.spriteCutter.heightCount;
+         wCount = image.data.spriteCutter.widthCount;
+         hCount = image.data.spriteCutter.heightCount;
          pixelH = Math.floor(h/hCount);
          pixelW = Math.floor(w/wCount);         
     }

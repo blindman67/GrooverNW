@@ -1,6 +1,5 @@
 "use strict";
-var groover = {}; // public interface.
-groover.win = gui.Window.get();
+
 if(DEBUG){
     groover.win.showDevTools();
 }

@@ -20,6 +20,9 @@ function UI(owner){
     }
     
     this.setupToolTip();
+    if(groover.settings.frameControls){
+        this.createFrameControls();
+    }
 }
 
 UI.prototype.viewUpdated = function(){
@@ -28,10 +31,6 @@ UI.prototype.viewUpdated = function(){
 UI.prototype.update = function(){
 }
 UI.prototype.display = function(){
-    if(groover.busy){
-        this.render.drawImageSRA(this.icons.named.busy.image,this.view.width/2,this.view.height * 3/4,1,this.owner.animFrame.time.valueOf()/10,1);
-        this.render.drawText(groover.busyMessage,this.view.width/2,this.view.height * 3/4 + 40);
-    }  
     if(this.toolTip !== undefined && this.toolTip.ready){
         if(!this.toolTip.owner.over || this.MK.BR !== 0 || this.MK.w !== 0){
             this.toolTip.free();
@@ -40,15 +39,232 @@ UI.prototype.display = function(){
             this.toolTip.display();
         }
     }
+    if(groover.busy){
+        this.render.drawImageSRA(this.icons.named.busy.image,this.view.width/2,this.view.height * 3/4,1,this.owner.animFrame.time.valueOf()/10,1);
+        this.render.drawText(groover.busyMessage,this.view.width/2,this.view.height * 3/4 + 40);
+    }  
+    if(this.frameControl !== undefined){
+        var fr = this.frameControl;
+        if(fr.dragging){
+            fr.update();
+            fr.display();
+        }else{
+            if(this.MK.mousePrivate === 0 || this.MK.mousePrivate === fr.id){
+                if(this.MK.y < fr.height){
+                    this.MK.mousePrivate = fr.id;
+                    fr.over = true;
+                }else{
+                    if(this.MK.mousePrivate === fr.id){
+                        this.MK.releaseCursor(fr.id);
+                        this.MK.mousePrivate = 0;
+                    }
+                    fr.over = false;
+                }
+            }
+            if(fr.over || fr.timer > 0){
+                fr.update();
+                fr.display();
+            }
+        }
+    }
 }
 
 UI.prototype.mediaReady = function(){
+    if(this.frameControl !== undefined){
+        this.frameControl.setup();
+    }
     this.ready = true;
     log("UI ready"); 
 }
 UI.prototype.loadMedia = function(){
     this.icons = this.bitmaps.startLoad(this.mediaReady.bind(this),"icons");
     this.bitmaps.load("icons","icons/busy.png","busy");
+}
+UI.prototype.createFrameControls = function(){
+    var frameSpriteDesc = {
+        spriteCutter:{
+            how:"grid",
+            widthCount : 5,
+            heightCount : 1,
+            repackWidth : false,
+        }
+    };
+    this.frameControl = {
+        owner : this,
+        sprites : this.bitmaps.load("icons","icons/frameIcons.png","frameIcons",this.bitmaps.onLoadCreateSprites.bind(this.bitmaps), frameSpriteDesc),
+        id : this.MK.getHolderID(),
+        over : false,
+        timer : 0,
+        h : 0,
+        w : 0,
+        dragging : false,
+        dragStartX : 0,
+        dragStartY : 0,
+        isMax : false,
+        isMin : false,
+        lastScreenPos : {
+            x : groover.win.x,
+            y : groover.win.y,
+            width : groover.win.width,
+            height : groover.win.height,
+        },
+        
+        cursors : ["pointer","pointer","pointer","pointer","move"],
+        setup : function(){
+            var w = this.sprites.image.sprites[0].w;
+            var h = this.sprites.image.sprites[0].h;
+            this.sprites.image.sprites[0].w -= 1; // hack to stop bleed from next sprite 
+            this.spriteW = w;
+            this.spriteH = h;
+            this.height = h;
+            h = Math.ceil(h *0.2);
+            w += Math.ceil(w *0.2);
+            this.w = w;
+            this.h = h;
+            this.height += h;
+        },
+        saveCurrentWindow : function(){
+            this.lastScreenPos.x = groover.win.x;
+            this.lastScreenPos.y = groover.win.y;
+            this.lastScreenPos.width = groover.win.width;
+            this.lastScreenPos.height = groover.win.height;
+        },
+        restoreSavedWindow : function(){
+            groover.win.x = this.lastScreenPos.x;
+            groover.win.y = this.lastScreenPos.y;
+            groover.win.width = this.lastScreenPos.width;
+            groover.win.height = this.lastScreenPos.height;                       
+        },
+        maxWindow : function(){
+            groover.win.x = groover.screens[0].work_area.x;
+            groover.win.y = groover.screens[0].work_area.y;
+            groover.win.width = groover.screens[0].work_area.width;
+            groover.win.height = groover.screens[0].work_area.height;
+        },
+            
+        update : function(){
+            if(this.over){
+                if(this.dragging){
+                    if(!this.owner.MK.B1){
+                        this.dragging = false;
+                    }
+                    var mx = this.owner.MK.x-this.dragStartX
+                    var my = this.owner.MK.y-this.dragStartY
+                    var newPx = Math.max(0,groover.win.x + mx);
+                    var newPy = Math.max(0,groover.win.y + my);
+                    if(newPx + groover.win.width > groover.screens[0].work_area.x + groover.screens[0].work_area.width){
+                        newPx = groover.screens[0].work_area.x + groover.screens[0].work_area.width - groover.win.width;
+                    }
+                    if(newPy + groover.win.height > groover.screens[0].work_area.y + groover.screens[0].work_area.height){
+                        newPy = groover.screens[0].work_area.y + groover.screens[0].work_area.height - groover.win.height;
+                    }
+                    groover.win.x = newPx;
+                    groover.win.y = newPy;
+                      
+                }else{ 
+                    if(this.timer <1){
+                        this.timer += 0.1;
+                        if(this.timer >= 1){
+                            this.timer = 1;
+                        }
+                    }
+                    var w = this.w;
+                    var x = this.owner.view.width-w;
+                    this.mouseOverIcon = 4;
+                    for(var i = 0; i < 4; i++){
+                        if(this.owner.MK.x > x){
+                            this.mouseOverIcon = i;
+                            break;
+                        }
+                        x -= w;
+                    }     
+                    
+                    this.owner.MK.requestCursor(this.cursors[this.mouseOverIcon],this.id);
+                    if(this.mouseOverIcon === 0 && this.owner.MK.B1){
+                        nw.App.quit();
+                    }else
+                    if(this.mouseOverIcon === 1 && this.owner.MK.B1){
+                        this.owner.MK.B1 = false;
+                        if(!groover.win.isFullscreen){
+                            this.saveCurrentWindow();
+                            this.isMax = true;
+                        }
+                        groover.win.toggleFullscreen();
+                    }else
+                    if(this.mouseOverIcon === 2 && this.owner.MK.B1){
+                        this.owner.MK.B1 = false;
+                        if(this.isMax){
+                            this.isMax = false;
+                            groover.win.restore();
+                            this.restoreSavedWindow();
+                        }else{
+                            this.isMax = true;
+                            this.saveCurrentWindow();
+                            groover.win.maximize();
+                            this.maxWindow();
+                        }
+                    }else
+                    if(this.mouseOverIcon === 3 && this.owner.MK.B1){
+                        this.owner.MK.B1 = false;
+                        if(this.isMin){ // I know seems strange. But you never know ??? Dumb luck.
+                            this.isMin = false;
+                            groover.win.restore();
+                        }else{
+                            this.isMin = true;
+                            groover.win.minimise();
+                        }
+                    }else
+                    if(this.mouseOverIcon === 4 && this.owner.MK.B1){
+                        if(!this.dragging){
+                            this.dragging = true;
+                            this.dragStartX = this.owner.MK.x;
+                            this.dragStartY = this.owner.MK.y;
+                        }
+                    }
+                }
+            }else{
+                if(this.timer > 0){
+                    this.timer -= 0.02;
+                    if(this.timer < 0){
+                        this.timer = 0;
+                    }
+                }
+            }
+        },
+        display : function(){
+            var a = mMath.easeInOut(this.timer,2);
+            var r = this.owner.render;
+            var img = this.sprites.image;
+            var w = this.w;
+            var h = this.h;
+            var x = this.owner.view.width - w;
+            var i;
+            for(var i = 0; i < 4; i++){
+                if(this.mouseOverIcon === i){
+                    r.drawSpriteAWH(img,4-i,x - h,0,this.spriteW+h * 2,this.spriteH + h * 2,a); // 
+                    r.blendLighten();
+                    r.drawSpriteAWH(img,4-i,x - h,0,this.spriteW+h * 2,this.spriteH + h * 2,a); // 
+                    r.blendNormal();                    
+                }else{
+                    r.drawSpriteA(img,4-i,x,h,a); // 
+                }
+                x -= w;
+            }
+            if(this.mouseOverIcon === 4){
+                r.drawSpriteAWH(img,0,0,0,x+w,this.height,a); // 
+                r.blendLighten();
+                r.drawSpriteAWH(img,0,0,0,x+w,this.height,a); // 
+                r.blendNormal();                    
+                
+            }else{
+                r.drawSpriteAWH(img,0,0,0,x+w,this.height,a); // 
+            }
+        }
+
+    }
+    
+    
+    
 }
 UI.prototype.setupToolTip = function(){
     this.toolTip = {
