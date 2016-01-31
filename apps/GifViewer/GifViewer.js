@@ -116,15 +116,19 @@ GifViewer.prototype.lostView = function(){
   //  this.iconButtons.location.set(xx + 82, yy, 2);
     this.slider.setup();//     .location.set(xx+190,yy,200); yy -= 28;
     this.iconButtons.setup();
+    this.pingPongCheck   .setup();
+    this.ignoreDelayCheck.setup();
+    this.blendFrameCheck .setup();
     //this.frameSlider     .location.set(xx,yy); yy += 10;
+
     //this.playSpeed       .location.set(xx,yy); yy -= 10;
     //this.frameCrossfade       .location.set(xx,yy); yy -= 10;
    // this.chaseAccl            .location.set(xx,yy); yy -= 10;
    // this.chaseDrag            .location.set(xx,yy); yy -= 10;
    // this.playCheck       .location.set(xx,yy); yy -= 16;
-    this.pingPongCheck   .location.set(xx,yy); yy -= 16;
-    this.ignoreDelayCheck.location.set(xx,yy); yy -= 16;
-    this.blendFrameCheck .location.set(xx,yy); yy -= 16;
+    //this.pingPongCheck   .location.set(xx,yy); yy -= 16;
+    //this.ignoreDelayCheck.location.set(xx,yy); yy -= 16;
+    //this.blendFrameCheck .location.set(xx,yy); yy -= 16;
     this.newView = true;
 }
 GifViewer.prototype.iconsAvaliable = function(imageGroup){

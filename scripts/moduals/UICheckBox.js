@@ -8,9 +8,6 @@
             ui.ready = true;
             ui.location = ui.owner.createLocationInterface(ui, settings.group);
             ui.setup();
-            if (tempX !== undefined) {
-                ui.location.set(tempX, tempY);
-            }
             if (settings.group !== undefined) {
                 settings.group.addUI(ui.location);
             }
@@ -67,29 +64,26 @@
                 
             sprites : UI.bitmaps.load("icons", "icons/SmallText.png", "smallText", UI.bitmaps.onLoadCreateSprites.bind(UI.bitmaps)),
             characters : UI.bitmaps.load("icons", "icons/CharacterSet10By10.png", "characterSet", UI.bitmaps.onLoadCreateSprites.bind(UI.bitmaps), charcterSetData),
-            canvas : null,
+            canvas : undefined,
             settings : settings,
             onchecked :settings.onchecked,
             onunchecked :settings.onunchecked,
-            location : {
-                set : function (x, y, w, h) {
-                    tempX = x;
-                    tempY = y;
-                    tempH = h;
-                    tempW = settings.width;
-                }
-            }, // stub till ready to set location
+            location : undefined, 
             setup : function () {
-                if(settings.width === undefined || settings.width <= 0){
-                    var w = this.owner.render.measureSpriteText(this.characters.image,this.text,33);
-                    w += Math.max(this.sprites.image.sprites[this.currentType.on].w,this.sprites.image.sprites[this.currentType.off].w);
-                    w += 8;
-                    this.canvas = this.owner.createCanvas(w, this.sprites.image.height);
-                    this.location.set();
-                    
+                if(this.canvas !== undefined){
+                        this.location.set(settings.x,settings.y);
                 }else{
-                    this.canvas = this.owner.createCanvas(settings.width, this.sprites.image.height);
-                    this.location.set();
+                    if(settings.width === undefined || settings.width <= 0){
+                        var w = this.owner.render.measureSpriteText(this.characters.image,this.text,33);
+                        w += Math.max(this.sprites.image.sprites[this.currentType.on].w,this.sprites.image.sprites[this.currentType.off].w);
+                        w += 8;
+                        this.canvas = this.owner.createCanvas(w, this.sprites.image.height);
+                        this.location.set(settings.x,settings.y);
+                        
+                    }else{
+                        this.canvas = this.owner.createCanvas(settings.width, this.sprites.image.height);
+                        this.location.set(settings.x,settings.y);
+                    }
                 }
             },            
             redraw : function(){
