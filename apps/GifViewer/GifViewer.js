@@ -40,9 +40,9 @@ function GifViewer(owner){
     //this.chaseAccl          = this.owner.ui.createUI("UISliderSmall","ChaceAccl"        ,{min:1,max:100,value:20,width:window.innerWidth/4-20,digets:4,colour:1,wheelStep : 1,group:this.testGroup,toolTip:"Controls how quickly the frame time follows\nthe users input when scrubbing the frames"});
     //this.chaseDrag          = this.owner.ui.createUI("UISliderSmall","ChaceDrage"       ,{min:1,max:100,value:20,width:window.innerWidth/4-20,digets:4,colour:1,wheelStep : 1,group:this.testGroup,toolTip:"Controls the drag of the scrubbing.\n Some interesting FX can be created \nvia this and the above control."});
     //this.playCheck           = this.owner.ui.createUI("UICheckBox"   ,"playCheck"        ,{text:"Play.",checked:true,width:0,group:this.testGroup,toolTop:"Plays the loaded gif\nElse show current frame"});
-    this.pingPongCheck      = this.owner.ui.createUI("UICheckBox"   ,"pingPongCheck"    ,{text:"Ping pong",checked:false,width:0,group:this.testGroup,toolTip:"If selected then gif plays back and fourth."});
-    this.ignoreDelayCheck   = this.owner.ui.createUI("UICheckBox"   ,"ignoreDelayCheck" ,{text:"Ignor load delay.",checked:false,width:0,group:this.testGroup,toolTip:"If selected then play back speed ignorse the frame delay\nloaded from the gif and uses a fixed constant frame delay"});
-    this.blendFrameCheck    = this.owner.ui.createUI("UICheckBox"   ,"blendFrameCheck"  ,{text:"Blend frames.",checked:false,width:0,group:this.testGroup,toolTip:"If true blends gif frames when screen refresh time does not match gif frame time."});
+    this.pingPongCheck      = this.owner.ui.createUI("UICheckBox"   ,"pingPongCheck"    ,{text:"Ping pong",checked:false,x:8,y:-65,width:0,group:this.testGroup,toolTip:"If selected then gif plays back and fourth."});
+    this.ignoreDelayCheck   = this.owner.ui.createUI("UICheckBox"   ,"ignoreDelayCheck" ,{text:"Ignor load delay.",checked:false,x:8,y:-50,width:0,group:this.testGroup,toolTip:"If selected then play back speed ignorse the frame delay\nloaded from the gif and uses a fixed constant frame delay"});
+    this.blendFrameCheck    = this.owner.ui.createUI("UICheckBox"   ,"blendFrameCheck"  ,{text:"Blend frames.",checked:false,x:8,y:-38,width:0,group:this.testGroup,toolTip:"If true blends gif frames when screen refresh time does not match gif frame time."});
     var icons = [
         {
             filename1 : "icons\\playOn.png",
@@ -111,10 +111,11 @@ GifViewer.prototype.lostView = function(){
     this.render = this.owner.render;  
     var xx = 10;
     var yy = this.view.height - 40;
-    this.iconButtons.location.set(xx + 10, yy, 0);
-    this.iconButtons.location.set(xx + 46, yy, 1);
-    this.iconButtons.location.set(xx + 82, yy, 2);
-   //this.slider     .location.set(xx+190,yy,200); yy -= 28;
+   // this.iconButtons.location.set(xx + 10, yy, 0);
+   // this.iconButtons.location.set(xx + 46, yy, 1);
+  //  this.iconButtons.location.set(xx + 82, yy, 2);
+    this.slider.setup();//     .location.set(xx+190,yy,200); yy -= 28;
+    this.iconButtons.setup();
     //this.frameSlider     .location.set(xx,yy); yy += 10;
     //this.playSpeed       .location.set(xx,yy); yy -= 10;
     //this.frameCrossfade       .location.set(xx,yy); yy -= 10;

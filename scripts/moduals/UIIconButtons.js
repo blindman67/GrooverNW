@@ -16,6 +16,7 @@
         for(var i = 0; i < settings.icons.length; i++){
             settings.icons[i].image1 = UI.bitmaps.load("buttons", settings.icons[i].filename1);
             settings.icons[i].image2 = UI.bitmaps.load("buttons", settings.icons[i].filename2);
+            settings.icons[i].id = UI.MK.getHolderID();
         }
         
         ui = {
@@ -37,8 +38,8 @@
                     if(icon.h === undefined){
                         icon.h = icon.image1.image.height;
                     }
-                    icon.id = this.owner.MK.getHolderID();
-                    icon.position = this.location.add(icon.x,icon.y,icon.w,icon.h,icon.id);
+                    icon.id = settings.icons[i].id;
+                    icon.position = this.location.add(icon.x,icon.y,icon.w,icon.h,icon.id,i);
                 }
 
             },

@@ -81,7 +81,7 @@
             handle : handle,             // image
             numContainer : numContainer, // image
             bar :  bar,                  // image
-            canvas : null,
+            canvas : undefined,
             draggingSlider : false,
             dragStartPos : 0,
             mouseWheelStep : settings.wheelStep,
@@ -89,10 +89,10 @@
             numWidth : settings.digets * 20 + 15,
             location : undefined, // stub till ready to set location
             setup : function () {
-
                 this.location.set(this.settings.x, this.settings.y, this.settings.width, this.settings.height);
-                this.canvas = this.owner.createCanvas(this.location.w,this.location.h);
-                log("Location W:"+this.location.w);
+                if(this.canvas === undefined || this.canvas.width !== this.location.w || this.canvas.height !== this.location.h){
+                    this.canvas = this.owner.createCanvas(this.location.w,this.location.h);
+                }
                 this.dirty = true;  // flag as dirty so it is redrawn
             },
             redraw : function(){
@@ -116,7 +116,7 @@
                 rend.drawSpriteA(numC, 2, w - 10, 0, 1);
                 var num = ""+mMath.padNumber(Math.round(this.value),this.digets);
                 for(var i = 0 ; i < this.digets ; i++){
-                    rend.drawSpriteA(img, num.charCodeAt(i)-48, w-nw + 5 + 20 * i,0,1)
+                    rend.drawSpriteA(img, num.charCodeAt(i)-48, w-nw + 10 + 20 * i,0,1)
                 }                
                 rend.drawBitmapA(hdl, pos-15, 0, 1);
                 rend.popCTX();

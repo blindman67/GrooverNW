@@ -344,19 +344,29 @@ UI.prototype.createLocationInterface = function(owner,group){
     return {
         owner : owner,
         group : group,
-        add: function(x,y,w,h,id){  // must provide full coordinates. Having x,y,w,h as undefined or null will create unexpected results
+        add: function(x,y,w,h,id,index){  // must provide full coordinates. Having x,y,w,h as undefined or null will create unexpected results
             var position;
             if(this.list === undefined){
                 this.list = [];
             }
+            if(index !== undefined && this.list[index] !== undefined){
+                position = this.list[index];
+            }
             this.set(x,y,w,h);
-            this.list.push(position = {
-                x : this.x,
-                y : this.y,
-                w : this.w,
-                h : this.h,
-                id : id,
-            });
+            if(position === undefined){
+                this.list.push(position = {
+                    x : this.x,
+                    y : this.y,
+                    w : this.w,
+                    h : this.h,
+                    id : id,
+                });
+            }else{
+                position.x = this.x;
+                position.y = this.y;
+                position.w = this.w;
+                position.h = this.h;                
+            }
             if(this.group !== undefined){
                 this.group.recaculateBounds();
             }
