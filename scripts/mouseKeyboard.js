@@ -55,6 +55,7 @@ function MouseKeyboard(owner){
 		this.keys[i] = false;
         this.keyEvents[i] = undefined;
     }
+    this.lastEventTime = 0;
     this.B1 = 0;
     this.B2 = 0;
     this.B3 = 0;
@@ -184,6 +185,7 @@ MouseKeyboard.prototype.mouseEvent = function(e){
     m.alt = e.altKey;
     m.shift = e.shiftKey;
     m.ctrl = e.ctrlKey;
+    m.lastEventTime = new Date().valueOf();
     e.preventDefault();    
     if (t === "mousemove") { 
         return;

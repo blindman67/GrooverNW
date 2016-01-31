@@ -486,7 +486,7 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
             }
         },
         releaseMouse : function(){
-            var mx,my,over;
+            var mx,my,over,len,il;
             mx = this.mouse.x;
             my = this.mouse.y;
             this.hold = false;
@@ -497,7 +497,6 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
                     over = true;
                 }
             }else{
-                len = l.list.length;
                 if(this.positionsIndex > -1){
                     il = l.list[this.positionsIndex];
                     if(mx >= il.x && mx < il.x + il.w && my >= il.y && my < il.y + il.h){
@@ -506,6 +505,7 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
                     }                    
                 }else{
                     /*  this could have a use later
+                    len = l.list.length;
                     for(var i = 0 ; i < len; i++){
                         il = l.list[i];
                         if(mx >= il.x && mx < il.x + il.w && my >= il.y && my < il.y + il.h){

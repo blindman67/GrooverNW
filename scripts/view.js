@@ -334,6 +334,16 @@ mMath.getDisplayTransformer = function(){
                 this.pixelXy = im1;     
             }
         }
+        var setScaleSpeed = function(speed){
+            if(speed > 1){
+                this.scaleSpeed  = speed;
+                this.invScaleSpeed = 1/speed;
+            }else
+            if(speed < 1){
+                this.invScaleSpeed  = speed;
+                this.scaleSpeed = 1/speed;
+            }
+        }
         var setMode = function (mode){
             mode = mode.toLowerCase();
             if(mode === "smooth"){
@@ -372,6 +382,7 @@ mMath.getDisplayTransformer = function(){
             mouseWheel       : undefined,
             scaleSpeed       : 1.1,
             invScaleSpeed    : 1 / 1.1,
+            setScaleSpeed    : setScaleSpeed,
             mouseTranslate   : mouseTranslate,
             mouseRotate      : mouseRotate,
             mouseZoom        : mouseZoom,

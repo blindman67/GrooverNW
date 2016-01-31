@@ -87,12 +87,19 @@
             mouseWheelStep : settings.wheelStep,
             digets : settings.digets,
             numWidth : settings.digets * 20 + 15,
+            handleWidth : undefined,
             location : undefined, // stub till ready to set location
             setup : function () {
+                this.numWidth = settings.digets * 20 + 15;
+                if(settings.decimalPlaces > 0){
+                    this.numWidth += settings.decimalPlaces * 20 + 10;
+                }
+                this.digets = settings.digets+settings.decimalPlaces
                 this.location.set(this.settings.x, this.settings.y, this.settings.width, this.settings.height);
                 if(this.canvas === undefined || this.canvas.width !== this.location.w || this.canvas.height !== this.location.h){
                     this.canvas = this.owner.createCanvas(this.location.w,this.location.h);
                 }
+                this.handleWidth = this.handle.image.width;
                 this.dirty = true;  // flag as dirty so it is redrawn
             },
             redraw : function(){
@@ -102,21 +109,35 @@
                 var img = this.sprites.image;
                 var w = this.canvas.width;
                 var nw =  this.numWidth;
-                var pos = Math.round(((this.value - this.min) / (this.max - this.min)) * (w-nw - 4) + 2);
+                var pos = Math.round(((this.value - this.min) / (this.max - this.min)) * (w-nw-this.handleWidth) + this.handleWidth/2);
 
                 var rend = this.owner.render;
                 this.canvas.ctx.clearRect(0,0,w,this.canvas.height);
                 rend.pushCTX(this.canvas.ctx);
                 rend.drawSpriteA(bar, 0, 0, 0, 1);
-                rend.drawSpriteAW(bar,  1, 9, 0, w-nw-20, 1);
+                rend.drawSpriteAW(bar,  1, 10, 0, w-nw-20, 1);
                 rend.drawSpriteA(bar, 2, w-nw-10, 0, 1);
 
                 rend.drawSpriteA(numC, 0, w-nw, 0, 1);
                 rend.drawSpriteAW(numC, 1, w-nw + 10, 0, this.numWidth-20,1);
                 rend.drawSpriteA(numC, 2, w - 10, 0, 1);
-                var num = ""+mMath.padNumber(Math.round(this.value),this.digets);
+                var num = ""+mMath.padNumber(this.value.toFixed(settings.decimalPlaces),settings.digets);
+                //log(""+num,"red");
+                var extra = 0;
+                var extraX = 0;
                 for(var i = 0 ; i < this.digets ; i++){
-                    rend.drawSpriteA(img, num.charCodeAt(i)-48, w-nw + 10 + 20 * i,0,1)
+                    if(i+extra > num.length){
+                        rend.drawSpriteA(img, 0, w-nw + 10 + 20 * i+extraX,0,1)
+                        
+                    }else{
+                        if(num[i+extra] === "."){
+                            rend.drawSpriteA(img, 10, w-nw + 10 + 20 * i+extraX,0,1)
+                            extra += 1;
+                            extraX += 10;
+                        }
+                            
+                        rend.drawSpriteA(img, num.charCodeAt(i+extra)-48, w-nw + 10 + 20 * i + extraX,0,1)
+                    }
                 }                
                 rend.drawBitmapA(hdl, pos-15, 0, 1);
                 rend.popCTX();
@@ -130,9 +151,9 @@
                     var rend = this.owner.render;
                     
                     var c = this.canvas.ctx;
-                    var w = this.canvas.width - this.numWidth;
+                    var w = this.canvas.width - (this.numWidth + this.handleWidth);
                     var img = this.sprites.image;
-                    var pos = Math.round(((this.value - this.min) / (this.max - this.min)) * (w - 4) + 2);
+                    var pos = Math.round(((this.value - this.min) / (this.max - this.min)) * w  + this.handleWidth/2);
                     if(m.mouse.mousePrivate === m.id){
                         if(this.draggingSlider){
                             
@@ -142,9 +163,9 @@
                             }else{
                                 var dist = (m.mouse.x-m.hx) ;
                                 pos = (this.dragStartPos + dist);
-                                this.value = ((pos -2) / (w-4)) * (this.max-this.min) + this.min;
+                                this.value = ((pos -this.handleWidth/2) /w) * (this.max-this.min) + this.min;
                                 this.value = Math.min(this.max,Math.max(this.min,this.value));
-                                pos = Math.round(((this.value - this.min) / (this.max - this.min)) * (w - 4) + 2);
+                                pos = Math.round(((this.value - this.min) / (this.max - this.min)) * w  + this.handleWidth/2);
                                 
                             }
                         }else{
@@ -161,9 +182,9 @@
                                     m.holdMouse();
                                     m.mouse.requestCursor("ew-resize", m.id);
                                     this.draggingSlider = true;
-                                    this.value = ((this.mouse.x-2) / (w-4)) * (this.max-this.min) + this.min;
+                                    this.value = ((this.mouse.x-this.handleWidth/2) / w) * (this.max-this.min) + this.min;
                                     this.value = Math.min(this.max,Math.max(this.min,this.value));
-                                    pos = Math.round(((this.value - this.min) / (this.max - this.min)) * (w - 4) + 2);
+                                    pos = Math.round(((this.value - this.min) / (this.max - this.min)) * w  + this.handleWidth/2);
                                     this.dragStartPos = pos;
                                 }
                             }
@@ -180,11 +201,12 @@
                         }
                     }
                     if(this.value !== this.oldValue){
-                        pos = Math.round(((this.value - this.min) / (this.max - this.min)) * (w - 4) + 2);
+                        pos = Math.round(((this.value - this.min) / (this.max - this.min)) * w + this.handleWidth/2);
                         this.dirty = true;
                     }
                     this.oldValue = this.value;
-                    if(this.dirty){
+                    // redraw if dirty and visible
+                    if(this.dirty && this.location.alpha > 0){
                         this.redraw();
                     }
                 }
@@ -193,7 +215,9 @@
                 var m = this.mouse;
                 var rend = this.owner.render;
                 var l = this.location;
-                rend.drawBitmapSize(this.canvas, l.x, l.y, l.w, l.h, l.alpha);
+                if(l.alpha > 0){
+                    rend.drawBitmapSize(this.canvas, l.x, l.y, l.w, l.h, l.alpha);
+                }
             }
         }
         ui.mouse = UI.createMouseInterface(ui);

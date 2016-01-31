@@ -110,6 +110,9 @@ var mMath = {
         if(pad <= 1){
             return num;
         }
+        if(num === "string"){
+            num = Number(num);
+        }
         var p = pad-1;
         if(num < 10){
             return this.pads[p] + num;

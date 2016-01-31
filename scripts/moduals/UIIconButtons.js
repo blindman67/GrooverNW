@@ -1,6 +1,6 @@
 (function () {  // IconButton UI
     var create = function (name,settings,UI,owner) {
-        var ui;
+        var ui,i,j,icon;
         if(owner === undefined){
             owner = UI;
         }
@@ -13,10 +13,15 @@
         }
         
         UI.buttons = UI.bitmaps.startLoad("buttons",uiReady);
-        for(var i = 0; i < settings.icons.length; i++){
-            settings.icons[i].image1 = UI.bitmaps.load("buttons", settings.icons[i].filename1);
-            settings.icons[i].image2 = UI.bitmaps.load("buttons", settings.icons[i].filename2);
-            settings.icons[i].id = UI.MK.getHolderID();
+        for(i = 0; i < settings.icons.length; i++){
+            icon = settings.icons[i];
+            if(icon.images === undefined){
+                icon.images = [];
+            }
+            for(j = 0; j < icon.filenames.length; j++){
+                icon.images[j] = UI.bitmaps.load("buttons", icon.filenames[j]);
+            }
+            icon.id = UI.MK.getHolderID();
         }
         
         ui = {
@@ -26,6 +31,8 @@
             ready : false,
             dirty : true,
             icons : settings.icons,  
+            mouseDownOnIcon : 0, // holds the icon id of the icon on which the mouse went down
+                                 // So that the mouse can be dragged of to cancel the click
             setup : function () {
                 var i, icon, len;
                 len = this.icons.length;
@@ -33,10 +40,10 @@
                     icon = this.icons[i];
                     icon.alpha = 1;
                     if(icon.w === undefined){
-                        icon.w = icon.image1.image.width;
+                        icon.w = icon.images[0].image.width;
                     }
                     if(icon.h === undefined){
-                        icon.h = icon.image1.image.height;
+                        icon.h = icon.images[0].image.height;
                     }
                     icon.id = settings.icons[i].id;
                     icon.position = this.location.add(icon.x,icon.y,icon.w,icon.h,icon.id,i);
@@ -51,9 +58,29 @@
                     if(m.over){
                         if(m.id === m.mouse.mousePrivate){
                             var icon = this.icons[m.positionsIndex];
+                            if(icon.toolTip){
+                                this.toolTip = icon.toolTip;
+                            }else{
+                                this.toolTip = undefined;
+                            }
                             if(icon.cursor){
                                 m.mouse.requestCursor(icon.cursor, m.id);
                             }
+                            if(m.mouse.B1 && ! m.hold){
+                                m.holdMouse();
+                                if(m.hold){
+                                    this.mouseDownOnIcon = icon.id;
+                                }
+                            }
+                            if(m.hold && m.mouse.oldB1 && !m.mouse.B1){
+                                m.mouse.oldB1 = false;
+                                m.releaseMouse();
+                                if(m.over){
+                                    if(typeof icon.onclick === "function"){
+                                        icon.onclick(this);
+                                    }
+                                }
+                            }                            
                         }
                     }
                 }
@@ -61,15 +88,16 @@
             display : function () {
                 var l = this.location;
                 var m = this.mouse;
-                
-                for(var i = 0 ; i < this.icons.length; i++){
-                    var icon = this.icons[i];
-                    var p = icon.position;
-                    if(m.positionsIndex === i){
-                        this.owner.render.drawBitmapSize(icon.image1.image,p.x,p.y,p.w,p.h,icon.alpha);
-                    }else{
-                        this.owner.render.drawBitmapSize(icon.image2.image,p.x,p.y,p.w,p.h,icon.alpha);
-                        
+                if(l.alpha > 0){
+                    for(var i = 0 ; i < this.icons.length; i++){
+                        var icon = this.icons[i];
+                        var p = icon.position;
+                        if(m.positionsIndex === i && (m.mouse.mousePrivate === 0 || m.mouse.mousePrivate === m.id) ){
+                            this.owner.render.drawBitmapSize(icon.images[0].image,p.x,p.y,p.w,p.h,icon.alpha * l.alpha);
+                        }else{
+                            this.owner.render.drawBitmapSize(icon.images[1].image,p.x,p.y,p.w,p.h,icon.alpha * l.alpha);
+                            
+                        }
                     }
                 }
             }
