@@ -77,7 +77,7 @@ UI.prototype.mediaReady = function(){
     log("UI ready"); 
 }
 UI.prototype.loadMedia = function(){
-    this.icons = this.bitmaps.startLoad(this.mediaReady.bind(this),"icons");
+    this.icons = this.bitmaps.startLoad("icons",this.mediaReady.bind(this));
     this.bitmaps.load("icons","icons/busy.png","busy");
 }
 UI.prototype.createFrameControls = function(){
@@ -143,15 +143,16 @@ UI.prototype.createFrameControls = function(){
         },
             
         update : function(){
+            var mx,my,newPy,newPx,w,x,i
             if(this.over){
                 if(this.dragging){
                     if(!this.owner.MK.B1){
                         this.dragging = false;
                     }
-                    var mx = this.owner.MK.x-this.dragStartX
-                    var my = this.owner.MK.y-this.dragStartY
-                    var newPx = Math.max(0,groover.win.x + mx);
-                    var newPy = Math.max(0,groover.win.y + my);
+                    mx = this.owner.MK.x-this.dragStartX
+                    my = this.owner.MK.y-this.dragStartY
+                    newPx = Math.max(0,groover.win.x + mx);
+                    newPy = Math.max(0,groover.win.y + my);
                     if(newPx + groover.win.width > groover.screens[0].work_area.x + groover.screens[0].work_area.width){
                         newPx = groover.screens[0].work_area.x + groover.screens[0].work_area.width - groover.win.width;
                     }
@@ -168,10 +169,10 @@ UI.prototype.createFrameControls = function(){
                             this.timer = 1;
                         }
                     }
-                    var w = this.w;
-                    var x = this.owner.view.width-w;
+                    w = this.w;
+                    x = this.owner.view.width-w;
                     this.mouseOverIcon = 4;
-                    for(var i = 0; i < 4; i++){
+                    for( i = 0; i < 4; i++){
                         if(this.owner.MK.x > x){
                             this.mouseOverIcon = i;
                             break;
@@ -232,14 +233,15 @@ UI.prototype.createFrameControls = function(){
             }
         },
         display : function(){
-            var a = mMath.easeInOut(this.timer,2);
-            var r = this.owner.render;
-            var img = this.sprites.image;
-            var w = this.w;
-            var h = this.h;
-            var x = this.owner.view.width - w;
-            var i;
-            for(var i = 0; i < 4; i++){
+            var a,r,img,w,h,x,i;
+            a = mMath.easeInOut(this.timer,2);
+            r = this.owner.render;
+            img = this.sprites.image;
+            w = this.w;
+            h = this.h;
+            x = this.owner.view.width - w;
+            i;
+            for(i = 0; i < 4; i++){
                 if(this.mouseOverIcon === i){
                     r.drawSpriteAWH(img,4-i,x - h,0,this.spriteW+h * 2,this.spriteH + h * 2,a); // 
                     r.blendLighten();
@@ -262,9 +264,6 @@ UI.prototype.createFrameControls = function(){
         }
 
     }
-    
-    
-    
 }
 UI.prototype.setupToolTip = function(){
     this.toolTip = {
@@ -345,44 +344,100 @@ UI.prototype.createLocationInterface = function(owner,group){
     return {
         owner : owner,
         group : group,
-
+        add: function(x,y,w,h,id){  // must provide full coordinates. Having x,y,w,h as undefined or null will create unexpected results
+            var position;
+            if(this.list === undefined){
+                this.list = [];
+            }
+            this.set(x,y,w,h);
+            this.list.push(position = {
+                x : this.x,
+                y : this.y,
+                w : this.w,
+                h : this.h,
+                id : id,
+            });
+            if(this.group !== undefined){
+                this.group.recaculateBounds();
+            }
+            return position;
+        },
         set: function(x,y,w,h){
-  
-            if(x !== null && x !== undefined){
-                this.x = x;
-            }
-            if(y !== null && y !== undefined){
-                this.y = y;
-            }
-            if(w === null || w === undefined){
+            this.abstracted.x = x;
+            this.abstracted.y = y;
+            this.abstracted.w = w;
+            this.abstracted.h = h;
+            if(w === undefined){
                 if(this.owner.canvas !== undefined){
                     w = this.owner.canvas.width;
                 }
             }
-            if(h === null || h === undefined){
+            if(h === undefined){
                 if(this.owner.canvas !== undefined){
                     h = this.owner.canvas.height;
                 }
             }
-            if(w !== null && w !== undefined){
+            if(w !== undefined){
+                if(w < 0){
+                    if(x !== undefined && x >= 0){
+                        log(w);
+                        w = (this.owner.owner.view.width - x) + w;
+                        log(w);
+                    }
+                }
                 this.w = w;
             }
-            if(h !== null && h !== undefined){
+            if(h !== undefined){
+                if(h < 0){
+                    if(y !== undefined && y >= 0){
+                        h = (this.owner.owner.view.height - y) + h;
+                    }
+                }
                 this.h = h;
+            }
+            if(x !== undefined){
+                if(x < 0){
+                    if(this.w !== undefined){
+                        if(this.w < 0){
+                            this.w = (this.owner.owner.view.width + x) + this.w;                            
+                            x = this.owner.owner.view.width - (-x + this.w);
+                        }else{
+                            x = this.owner.owner.view.width - (-x + this.w);
+                        }
+                    }else{
+                        x = this.owner.owner.view.width + x;
+                    }
+                }
+                this.x = x;
+            }
+            if(y !== undefined){
+                if(y < 0){                    
+                    if(this.h !== undefined){
+                        if(this.h < 0){
+                            this.h = (this.owner.owner.view.height + y) + this.h;  
+                            y = this.owner.owner.view.height - (-y + this.h);
+                        }else{
+                            y = this.owner.owner.view.height - (-y + this.h);
+                        }
+                    }else{
+                        y = this.owner.owner.view.height + y;
+                    }
+                }
+                this.y = y;
             }
             if(this.group !== undefined){
                 this.group.recaculateBounds();
             }
         },
-        sx : 1,
-        sy : 1,
-        x:0,
-        y:0,
-        w:0,
-        h:0,
+        x : 0,
+        y : 0,
+        w : 0,
+        h : 0,
+        abstracted : {  // set and addFunctions provide abstracted coordinates so must be stored as well
+            x:0,y:0,w:0,h:0
+        },
         alpha : 1,
-
-            
+        list : undefined,
     };    
 }
 UI.prototype.createMouseInterface = function(owner,canHoldMouse){
@@ -391,7 +446,9 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
         id : this.MK.getHolderID(),
         mouse : this.MK,    
         x : 0,
-        y : 0,        
+        y : 0,       
+        positionsId : 0,   // if icons are seperated location are use this tracks which location is over    
+        positionsIndex : -1, // the index of the seperated icon/location
         over : false,
         canHoldMouse : canHoldMouse || canHoldMouse === undefined ? true : false,
         hold : false,
@@ -419,9 +476,37 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
             }
         },
         releaseMouse : function(){
+            var mx,my,over;
+            mx = this.mouse.x;
+            my = this.mouse.y;
             this.hold = false;
             var l = this.owner.location;
-            if(this.mouse.x >= l.x && this.mouse.x < l.x + l.w && this.mouse.y >= l.y && this.mouse.y < l.y + l.h){
+            over = false;
+            if(l.list === undefined){
+                if(mx >= l.x && mx < l.x + l.w && my >= l.y && my < l.y + l.h){
+                    over = true;
+                }
+            }else{
+                len = l.list.length;
+                if(this.positionsIndex > -1){
+                    il = l.list[this.positionsIndex];
+                    if(mx >= il.x && mx < il.x + il.w && my >= il.y && my < il.y + il.h){
+                        over = true;
+                        this.positionsIndex = -1;
+                    }                    
+                }else{
+                    /*  this could have a use later
+                    for(var i = 0 ; i < len; i++){
+                        il = l.list[i];
+                        if(mx >= il.x && mx < il.x + il.w && my >= il.y && my < il.y + il.h){
+                            over = true;
+                            break
+                        }
+                    }
+                    */
+                }
+            }
+            if(over){
                 this.over = true;
             }else{
                 this.over = false;
@@ -429,6 +514,9 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
             }            
         },
         isMouseOver : function(){
+            var mx,my,i,len,il,over;
+            mx = this.mouse.x;
+            my = this.mouse.y;
             var l = this.owner.location;
             if(this.inactive){
                 return;
@@ -436,20 +524,43 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
             if(this.hold){
                 this.over = true;
                 this.overCount += 1;
-                this.x = this.mouse.x - l.x;
-                this.y = this.mouse.y - l.y;
+                this.x = mx - l.x;
+                this.y = my - l.y;
             }else
             if(l.group === undefined || l.group.mouse.over){
-
-                if(this.mouse.x >= l.x && this.mouse.x < l.x + l.w && this.mouse.y >= l.y && this.mouse.y < l.y + l.h){
+                over = false;
+                if(l.list === undefined){
+                    if(mx >= l.x && mx < l.x + l.w && my >= l.y && my < l.y + l.h){
+                        over = true;
+                        this.x = mx - l.x;
+                        this.y = my - l.y;
+                    }
+                }else{
+                    len = l.list.length;
+                    for(var i = 0 ; i < len; i++){
+                        il = l.list[i];
+                        if(mx >= il.x && mx < il.x + il.w && my >= il.y && my < il.y + il.h){
+                            over = true
+                            this.x = mx - il.x;
+                            this.y = my - il.y;
+                            if(this.positionsId !== il.id){
+                                this.overCount = 0;                                                    
+                            }
+                            this.positionsId = il.id;
+                            this.positionsIndex = i;
+                            break;
+                        }
+                    }
+                    if(!over){
+                        this.positionsIndex = -1;
+                    }
+                }
+                if(over){
                     this.over = true;
-                    this.overCount += 1;
-                    this.x = this.mouse.x - l.x;
-                    this.y = this.mouse.y - l.y;
+                    this.overCount += 1;                    
                 }else{
                     this.over = false;
                     this.overCount = 0;
-
                 }
                 if((this.canHoldMouse  && (this.mouse.mousePrivate === this.id || this.mouse.mousePrivate === 0)) || this.mouse.mousePrivate === this.id){
                     if(this.over){
@@ -464,19 +575,16 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
                 if(this.over && this.overCount > 60 && this.owner.toolTip !== undefined){
                     if(this.owner.owner.toolTip !== undefined && this.owner.owner.toolTip.avalible){
                         this.owner.owner.toolTip.set(this.owner.toolTip,this);
-                        
                     }                    
                 }
             }else{
                 this.over = false;
                 this.overCount = 0;
-
                 if(this.mouse.mousePrivate === this.id && this.hold === false){
                     this.mouse.releaseCursor(this.id);
                     this.mouse.mousePrivate = 0;
                 }
             }
-                
         },      
     }
 }
@@ -500,7 +608,6 @@ UI.prototype.UIGroup = function(name,data,owner){
                 this.updateList[this.updateList.length] = UILocation.owner;
             }
         },
-
         recaculateBounds : function(){
             var i, len, xm, xM, ym, yM,item;
             len = this.items.length;
@@ -534,8 +641,8 @@ UI.prototype.UIGroup = function(name,data,owner){
             
         
     };
-    ui.mouse= this.createMouseInterface(ui,false);
-    ui.location= this.createLocationInterface(ui);
+    ui.mouse = this.createMouseInterface(ui,false);
+    ui.location = this.createLocationInterface(ui);
     return ui;
 }
 // stub function is used to fill missing UI moduals and stop the system crashing 

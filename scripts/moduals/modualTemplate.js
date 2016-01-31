@@ -1,7 +1,7 @@
 (function(){  // **MODUAL** code will have use strit prefixed
     // important do not add anything above this line. Modual loading adds (use strict) and accepts the returned value of this function
-    var yourObject = function(){
-        return {};
+    var yourObject = {
+
     }
     var configure = function(){
         // add code here as a one off run to load any requiered moduals or stuff

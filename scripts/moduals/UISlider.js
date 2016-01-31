@@ -1,31 +1,54 @@
 (function () {  // Slider Small UI
     var shapes;
     var create = function (name,settings,UI,owner) {
-        var tempX,tempY,tempH,tempW;
-        
+        var h;
+        if(settings.height === undefined){
+            settings.height = 40;
+        }
+        h = settings.height;
         if(owner === undefined){
             owner = UI;
         }
-        var handle = UI.bitmaps.imageTools.createImage(30,40);
-        var bar = UI.bitmaps.imageTools.createImage(60,40);
-        var numContainer = UI.bitmaps.imageTools.createImage(60,40);
-        var numSprites = UI.bitmaps.imageTools.createImage(600,40);
-        var lw = 3;
-        var b1 = shapes.createStyle("#00F","White",lw,8);
-        var b2 = shapes.createStyle("#0FF","White",lw,8);
-        var b3 = shapes.createStyle("#888","White",lw,8);
-        var b4 = shapes.createStyle("#FFF","Black",lw,8);
-  
-        shapes.drawRectangle(handle,lw,lw*2,30-lw*2,40-lw*4,b4);
+        
+        var handle = UI.bitmaps.create("icons",30,h, "handle")
+        var bar = UI.bitmaps.create("icons",60,h, "bar")
+        var numContainer = UI.bitmaps.create("icons",60,h, "numContainer")
+        var numSprites = UI.bitmaps.create("icons",600,h, "customSlider")
 
-        shapes.drawRectangle(bar,lw,lw*4,60-lw*2,40-lw*8,b1);
-        shapes.drawRectangle(numContainer,lw,lw,60-lw*2,40-lw*2,b3);
-        numSprites.ctx.font = "30px arial";
-        numSprites.ctx.textBaseline = "middle";
-        numSprites.ctx.textAlign = "left";
-        numSprites.ctx.fillStyle = "white";
-        numSprites.ctx.fillText("0123 4 56789.+-",0,20);
-  
+        var lw = 3;
+       
+        if(!handle.drawn){
+            var b4 = shapes.createStyle("#FFF","Black",lw,8);
+            shapes.drawRectangle(handle.image,lw,lw*2,30-lw*2,h-lw*4,b4);
+            handle.drawn = true;
+        }
+        if(!bar.drawn){
+            var b1 = shapes.createStyle("#00F","White",lw,8);
+            shapes.drawRectangle(bar.image,lw,lw*4,60-lw*2,h-lw*8,b1);
+            bar.image.sprites = [];
+            bar.image.sprites.push({x:0,y:0,w:10,h:h});
+            bar.image.sprites.push({x:10,y:0,w:40,h:h});
+            bar.image.sprites.push({x:50,y:0,w:10,h:h});
+            bar.drawn = true;
+        }
+        if(!numContainer.drawn){
+            var b3 = shapes.createStyle("#00F","White",lw,8);
+            shapes.drawRectangle(numContainer.image,lw,lw,60-lw*2,h-lw*2,b3);
+            numContainer.image.sprites = [];
+            numContainer.image.sprites.push({x:0,y:0,w:10,h:h});
+            numContainer.image.sprites.push({x:10,y:0,w:40,h:h});
+            numContainer.image.sprites.push({x:50,y:0,w:10,h:h});        
+            numContainer.drawn = true;
+        }
+        if(!numSprites.drawn){
+            numSprites.image.ctx.font = Math.max(12,h-10)+"px arial";
+            numSprites.image.ctx.textBaseline = "middle";
+            numSprites.image.ctx.textAlign = "left";
+            numSprites.image.ctx.fillStyle = "white";
+            numSprites.image.ctx.fillText("0 1 2 3 4 5 6 7 8 9 . + -",0,h/2);
+            UI.bitmaps.horizontalSpriteCutter(numSprites);
+            numSprites.drawn = true;
+        }
         
         
         
@@ -33,19 +56,15 @@
 
         var uiReady = function () {
             ui.ready = true;
-             ui.setup();
             ui.location = ui.owner.createLocationInterface(ui, settings.group);
-            if (tempX !== undefined) {
-                ui.location.set(tempX, tempY, tempW, tempH);
-            }
             if (settings.group !== undefined) {
                 settings.group.addUI(ui.location);
             }
-
+            ui.setup();
             ui.update();
 
         }
-        UI.icons = UI.bitmaps.startLoad(uiReady, "icons");
+        UI.icons = UI.bitmaps.startLoad("icons",uiReady);
 
         var ui = {
             owner : owner,
@@ -58,36 +77,23 @@
             value : settings.value,
             oldValue : null,
             dirty : true,
-            sprites : UI.bitmaps.load("icons", numSprites, "customSlider", UI.bitmaps.onLoadCreateSprites.bind(UI.bitmaps)),
-            handle : UI.bitmaps.load("icons", handle, "handle"),
-            numContainer : UI.bitmaps.load("icons", numContainer, "numContainer"),
-            bar : UI.bitmaps.load("icons", bar, "bar"),
+            sprites : numSprites,        // image
+            handle : handle,             // image
+            numContainer : numContainer, // image
+            bar :  bar,                  // image
             canvas : null,
             draggingSlider : false,
             dragStartPos : 0,
             mouseWheelStep : settings.wheelStep,
             digets : settings.digets,
             numWidth : settings.digets * 20 + 15,
-            colour : settings.colour * 6 + 4,
-            location : {
-                set : function (x, y, w, h) {
-                    tempX = x;
-                    tempY = y;
-                    tempH = h;
-                    tempW = settings.width;
-                }
-            }, // stub till ready to set location
+            location : undefined, // stub till ready to set location
             setup : function () {
-                this.canvas = this.owner.createCanvas(settings.width,40);
-                this.dirty = true;
-                this.bar.image.sprites = [];
-                this.bar.image.sprites.push({x:0,y:0,w:10,h:40});
-                this.bar.image.sprites.push({x:10,y:0,w:40,h:40});
-                this.bar.image.sprites.push({x:50,y:0,w:10,h:40});
-                this.numContainer.image.sprites = [];
-                this.numContainer.image.sprites.push({x:0,y:0,w:10,h:40});
-                this.numContainer.image.sprites.push({x:10,y:0,w:40,h:40});
-                this.numContainer.image.sprites.push({x:50,y:0,w:10,h:40});
+
+                this.location.set(this.settings.x, this.settings.y, this.settings.width, this.settings.height);
+                this.canvas = this.owner.createCanvas(this.location.w,this.location.h);
+                log("Location W:"+this.location.w);
+                this.dirty = true;  // flag as dirty so it is redrawn
             },
             redraw : function(){
                 var bar = this.bar.image;

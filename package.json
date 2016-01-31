@@ -5,7 +5,6 @@
   "main": "groover.html",
   "chromium-args": "--mixed-context",
   "node-remote":["<all_urls>"],
-  "bg-script":"scripts/background/background.js",
   "window": {
     "toolbar": false,
     "icon": "/icons/Groover16.png",

@@ -1,8 +1,8 @@
 "use strict";
 function View(owner){
     this.owner = owner;
-    this.width;    
-    this.height;    
+    this.width = window.innerWidth;    
+    this.height = window.innerHeight;    
     this.ctx;  // main display
     this.views = [];
     this.render;

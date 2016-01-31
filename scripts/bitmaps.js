@@ -128,13 +128,62 @@ Bitmaps.prototype.imageEvent = function(event){
     }
     
 }
-Bitmaps.prototype.startLoad = function(callback,group){
+Bitmaps.prototype.startLoad = function(group,callback){
     var imageGroup = this.getGroup(group);
     imageGroup.callbacks.push(callback);
     if(imageGroup.loadingCount === 0){
         imageGroup.fresh = [];
     }
     return imageGroup;
+}
+Bitmaps.prototype.addCallback2Image = function(image,callback){
+    if(image.callback !== undefined){
+        image.callbacks = [image.callback,callback];
+        image.callback = undefined;
+    }else
+    if(image.callbacks !== undefined){
+        image.callbacks.push(callback);
+    }else{
+        image.callback = callback;
+    }
+    
+}
+// 
+// w and h are widtth and height
+// see next this.load function for details on what this function does
+Bitmaps.prototype.create = function(group,w,h,name,data){
+    var image, imageGroup, iEvent;
+    imageGroup = this.getGroup(group);
+    if(name !== undefined && typeof name === "string"){  // if a named image check if it exists
+        if(imageGroup.named !== undefined){
+            if(imageGroup.named[name] !== undefined){
+                image = imageGroup.named[name];
+                return image;                        
+            }
+        }
+    }    
+    
+    var image = {};
+    image.image = document.createElement("canvas");
+    image.image.width = w;
+    image.image.height = h;
+    image.image.ctx = image.image.getContext("2d");
+    image.image.self = image;    
+    image.filename = "";
+    if(image.image.data === undefined && data !== undefined){
+        image.data = data;
+    }
+    image.group = imageGroup;
+    image.name = name;
+    if(image.name !== undefined){  // add named image to group's named list
+        if(image.group.named === undefined){
+            image.group.named = {};
+        }
+        image.group.named[image.name] = image;
+    }      
+    imageGroup.list.push(image);
+    image.ready = true;
+    return image;
 }
 
 // load an image animation, movie, gif.
@@ -162,7 +211,7 @@ Bitmaps.prototype.load = function(group,filename,name,callback,data){
             if(imageGroup.named[name] !== undefined){
                 image = imageGroup.named[name];
                 if(image.ready){
-                    image.callback = callback;
+                    this.addCallback2Image(image,callback);
                     imageGroup.loadingCount += 1;
                     this.groupLoadedImage(imageGroup,image,null);
                     return image;
@@ -170,16 +219,8 @@ Bitmaps.prototype.load = function(group,filename,name,callback,data){
                 if(image.failed){ // Need to workout what to do with failed images
                     return image;
                 }else{   // image is still loading                    
-                    if(image.callback !== undefined){
-                        image.callbacks = [image.callback,callback];
-                    }else
-                    if(image.callbacks !== undefined){
-                        image.callbacks.push(callback);
-                    }else{
-                        image.callback = callback;
-                    }
-                    return image;
-                        
+                    this.addCallback2Image(image,callback);
+                    return image;                        
                 }
             }
         }

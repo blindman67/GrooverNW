@@ -1,4 +1,4 @@
-Work in progress.
+THIS is a work in progress.
 
 Groover is a set of applications and site for the design and creation of realtime cross platform media such as games, animations, pressentations and anything that requiers realtime pressention.
 
@@ -7,6 +7,11 @@ GrooverNW is the first public part of this suit of applications. It is intended 
 The aim is to have minimum contact with the DOM and interact only via the canvas (veiw) 
 
 It is intended that the GrooverNW is a runtime framework and does not requier a process of linking, compilation, resource collection/bundling. Applications are run via the command line argument `app=applicationName` where applicationName is the name of the directory where the application code is. (Though subject to change)
+
+Current Status.
+
+Still working on UI. The anim is for very complex UIs that do not drop the frame rate but still provide rich animated functionality,
+The UI is just working, but still laking in many areas.
 
 
 Files

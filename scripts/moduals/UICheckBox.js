@@ -18,7 +18,7 @@
 
         }
         // if not loading sprites then call uiReady manualy
-        UI.icons = UI.bitmaps.startLoad(uiReady, "icons");
+        UI.icons = UI.bitmaps.startLoad("icons",uiReady);
         var charcterSetData = {
             spriteCutter:{
                 how:"grid",

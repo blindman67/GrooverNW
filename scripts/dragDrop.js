@@ -94,6 +94,7 @@ DropManager.prototype.onDragEnter = function (event) {
 }
 DropManager.prototype.onDragOver = function (event) {
     event.preventDefault();
+    groover.draggedOver = true;
 }
 DropManager.prototype.mimeTypes = {
     png : "image/png",

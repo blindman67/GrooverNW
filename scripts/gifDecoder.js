@@ -233,7 +233,21 @@ groover.GIF = function(){
             doOnloadEvent();
         }
     };
-    
+    var finnished = function(){
+        gif.frameCount = gif.frames.length;            
+        gif.lastFrame = undefined;
+        st = undefined;
+        gif.complete = true;
+        gif.disposalMethod = undefined;
+        gif.transparencyGiven = undefined;
+        gif.delayTime =   undefined;
+        gif.transparencyIndex =  undefined;     
+        gif.waitTillDone = undefined;
+        doOnloadEvent();
+        if(typeof gif.onloadall === "function"){
+            (gif.onloadall.bind(gif))({type : 'loadall', path : [gif]});
+        }                
+    }
     var parseExt = function(){
         switch (st.data[st.pos++]) {
             case 0xF9:
@@ -256,21 +270,13 @@ groover.GIF = function(){
         switch (st.data[st.pos++]) { 
             case 0x2c: // image block
                 parseImg();
+                if(gif.firstFrameOnly){
+                    finnished();
+                    return;
+                }
                 break;
             case 59:  // EOF found so cleanup and exit.
-                gif.frameCount = gif.frames.length;            
-                gif.lastFrame = undefined;
-                st = undefined;
-                gif.complete = true;
-                gif.disposalMethod = undefined;
-                gif.transparencyGiven = undefined;
-                gif.delayTime =   undefined;
-                gif.transparencyIndex =  undefined;     
-                gif.waitTillDone = undefined;
-                doOnloadEvent();
-                if(typeof gif.onloadall === "function"){
-                    (gif.onloadall.bind(gif))({type : 'loadall', path : [gif]});
-                }
+                finnished();
                 return;
             case 0x21: // extened block 
             default:
@@ -325,6 +331,7 @@ groover.GIF = function(){
         currentFrame : 0,
         lastFrameAt : new Date().valueOf(),
         nextFrameAt : new Date().valueOf(),
+        firstFrameOnly : false,
     };
     return gif;
 }

@@ -6,7 +6,7 @@
         var uiReady = function(){
            ui.ready = true;
         }
-        UI.icons = UI.bitmaps.startLoad(uiReady,"icons");    
+        UI.icons = UI.bitmaps.startLoad("icons",uiReady);
         var ui = {
             owner : owner,
             name : name,

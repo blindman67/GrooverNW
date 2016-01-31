@@ -18,7 +18,7 @@
             ui.update();
 
         }
-        UI.icons = UI.bitmaps.startLoad(uiReady, "icons");
+        UI.icons = UI.bitmaps.startLoad("icons",uiReady);
 
         var ui = {
             owner : owner,

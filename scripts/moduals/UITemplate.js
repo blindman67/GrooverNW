@@ -18,7 +18,7 @@
 
         }
         // if not loading sprites then call uiReady manualy
-        UI.icons = UI.bitmaps.startLoad(uiReady, "icons");
+        UI.icons = UI.bitmaps.startLoad("icons",uiReady);
 
         // for sprite callback data when image file needs to be cut into sprites
         // see butmaps.js for more information.
