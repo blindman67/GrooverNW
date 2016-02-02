@@ -1,14 +1,16 @@
 "use strict";
+// for loading saving, manipulating, etc images, bitmaps,
+
 function Bitmaps(owner){
     this.owner = owner;
     this.imageGroups = {};
     this.iEvent = this.imageEvent.bind(this);
-    this.loadedCallBacks = [];
-    this.loadingCount = 0;
     this.imageProcessor = imageProcessing;
     this.ready = true;
     log("Bitmap manager ready");
 }
+
+// some image tools used for code migration.
 Bitmaps.prototype.imageTools = {
     canvas : function (width, height) {  // create a blank image (canvas)
         var c = document.createElement("canvas");
@@ -41,16 +43,18 @@ Bitmaps.prototype.imageTools = {
         return (image.ctx || (this.image2Canvas(image).ctx)).getImageData(0, 0, image.width, image.height);
     },    
 }
-
+// creates a new image group replacing existing group if it exists.
 Bitmaps.prototype.createImageGroup = function(name){
     this.imageGroups[name] = {
         list : [],
-        fresh : [],
         callbacks : [],
         loadingCount : 0,
     }
     return this.imageGroups[name];    
 }
+
+// removes failed and images marked as remove from a group.
+// If there is a referance to the image outside bitmaps then this will not delete the image,
 Bitmaps.prototype.cleanImageGroup = function(imageGroup){
     var i;
     for(i = 0; i < imageGroup.list.length; i++){
@@ -68,14 +72,17 @@ Bitmaps.prototype.cleanImageGroup = function(imageGroup){
         }
     }
 }
-Bitmaps.prototype.getGroup = function(group){
-    var imageGroup = this.imageGroups[group];
+// gets an image group by name or creates a new image group if it does not exist.
+Bitmaps.prototype.getGroup = function(groupName){
+    var imageGroup = this.imageGroups[groupName];
     if(imageGroup === undefined){
-        imageGroup = this.createImageGroup(group);
+        imageGroup = this.createImageGroup(groupName);
     }
     return imageGroup;
 }
-Bitmaps.prototype.groupLoadedImage = function(group,image,status){
+
+// updates a group with new image calling callbacks if needed
+Bitmaps.prototype.updateGroup = function(group,image,status){
     if(image.callback !== undefined){
         image.callback(status,image,group);
     }else
@@ -93,7 +100,7 @@ Bitmaps.prototype.groupLoadedImage = function(group,image,status){
         }
     }        
 }
-
+// DOM or Groover image event to indicate if image has loaded or  failed.
 Bitmaps.prototype.imageEvent = function(event){
     var i;
 
@@ -103,14 +110,13 @@ Bitmaps.prototype.imageEvent = function(event){
             var img = imgs[i];
             var image = img.self;
             image.ready = true;
-            var group = image.group;
-            group.fresh.push(image);             
+            var group = image.group;            
             if(image.video){
                 image.image.muted = true;
                 image.image.height =image.image.videoHeight;
                 image.image.width = image.image.videoWidth;
             }
-            this.groupLoadedImage(group,image,null);
+            this.updateGroup(group,image,null);
         }
     }else
     if(event.type === "error"){
@@ -123,11 +129,13 @@ Bitmaps.prototype.imageEvent = function(event){
             image.failed = true;
             //log("Failed to load image:'"+image.filename+"'");
             var group = image.group;
-            this.groupLoadedImage(group,image,"error");       
+            this.updateGroup(group,image,"error");       
         }        
-    }
-    
+    }   
 }
+
+
+// Starts the liading of images to a group.
 Bitmaps.prototype.startLoad = function(group,callback){
     var imageGroup = this.getGroup(group);
     imageGroup.callbacks.push(callback);
@@ -136,6 +144,12 @@ Bitmaps.prototype.startLoad = function(group,callback){
     }
     return imageGroup;
 }
+// adds a callback to an image.
+// the callback has the form 
+//     callback(status,image,group)
+//     status is null is all ok or String "error"  //more to come 
+//     image is the bitmap image format. the DOM/groover image is image.image
+//     group is the image group that the image belongs to
 Bitmaps.prototype.addCallback2Image = function(image,callback){
     if(image.callback !== undefined){
         image.callbacks = [image.callback,callback];
@@ -213,7 +227,7 @@ Bitmaps.prototype.load = function(group,filename,name,callback,data){
                 if(image.ready){
                     this.addCallback2Image(image,callback);
                     imageGroup.loadingCount += 1;
-                    this.groupLoadedImage(imageGroup,image,null);
+                    this.updateGroup(imageGroup,image,null);
                     return image;
                 }else
                 if(image.failed){ // Need to workout what to do with failed images
@@ -300,6 +314,10 @@ Bitmaps.prototype.load = function(group,filename,name,callback,data){
 }
 
 
+// images are saved via the blocking fileSystem.writeFileSync call and should 
+// not be called while ding realtime rendering
+
+// saves an animation
 Bitmaps.prototype.saveAnimationFramesAs = function(image,filename,type,quality){
     var urlData,validTypes,dataType,fileStats,dirStats,i,frame,filenameBase;
     validTypes = ["png","jpeg","jpg","webp"];
@@ -369,6 +387,7 @@ Bitmaps.prototype.saveAnimationFramesAs = function(image,filename,type,quality){
     image.filename = filenameBase.dir + "\\" + filenameBase.name + mMath.padNumber(i,numPad);
 }    
 
+// save an image
 Bitmaps.prototype.saveImageAs = function(image,filename,type,quality){
     var urlData,validTypes,dataType,fileStats,dirStats;
     validTypes = ["png","jpeg","jpg","webp"];
@@ -444,87 +463,7 @@ Bitmaps.prototype.saveImageAs = function(image,filename,type,quality){
     log("Saved image as "+image.filename);   
 }
 
-/*
-I am using NW.js 0.13 beta 2 and am trying to write a image to a file using Node.js File System writeFileSync(filename,data,"base64") but every time it runs all it does is create the file of zero size and then the app just closes. It does not throw an error or execute anything after fs.writeFileSync. Even using the debugger it just shuts down without a way to stop it.
-
-I can not find any information on this, or why this is happening.
-
-example code.
-// in file 'nodeRequiered.js'
-var gui = require("nw.gui");  // not used in this example but may be relevant.
-var fileSystem = require("fs");
-
-// in file 'main.js'
-window.addEventListener("load", function(){
-    var newImage, ctx, dir, filename, data;
-    newImage = document.createElement("canvas");
-    newImage.width = 200;
-    newImage.height = 200;
-    ctx = newImage.getContext("2d");
-    ctx.fillStyle = "red";     // put something on the canvas to save;
-    ctx.fillRect(0,0,200,200);
-    dir = "D:\\test"
-    try{
-        if(fileSystem.statSync(dir).isDirectory()){ // make sure directory exists will throw is cant locate directory
-            filename = "D:\\test\\test.jpg";
-            data = newImage.toDataURL("image/jpeg",0.6).replace(/^data:image\/jpeg;base64,/, '');
-            try{
-                fileSystem.writeFileSync(filename,data,"base64");  // never passes this line
-                document.body.textContent = "Yay it worked!!!!";
-            }catch(error){
-                document.body.textContent = error.message;
-            }
-        }else{
-            throw new ReferanceError("Dir is a file");
-        }
-    }catch(e){
-        document.body.textContent = "Could not find directory";  // this works if I give a bad dir name
-    }
-});
-
-Results in a closed file "D:\test\test.jpg" with 0 bytes 
-
-The manifest
-{
-  "name": "Tester",
-  "description": "Try and save a canvas.",
-  "version": "0.1.0",
-  "main": "test.html",
-  "window": {
-    "toolbar": false,
-    "icon": "test.png",
-    "title" : "Canvas saver"
-  },
-  "scripts": {
-    "start": "nw ."
-  }
-}
-
-The HTML
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-8">
-        <title>Tester</title>    
-        <script src = "nodeRequiered.js"></script>
-        <script src = "main.js"></script>
-    </head>
-    <body>
-    </body>
-</html>
-
-Versions
-nw.js v0.13.0-beta2
-Node v5.1.0
-Chromium 47.0.2526.73
-Windows 10 home x32 on i7 CPU
-
-
-
-
-
-*/
-
+// Image processing utilities
 var imageProcessing = {
     createImage : function(w,h){
         var newI = document.createElement("canvas");
@@ -581,6 +520,9 @@ var imageProcessing = {
     }    
 }    
 // very ugly code. Must do something to this.
+// encoding of images will remain. Though tempted to depreciate there is good arguments
+// to keep this format for the time being as it is more suited to Web development
+// 
 Bitmaps.prototype.onLoadCreateSprites1 = function(status,image){
     if(status === null){
         if(image.image.sprites === undefined){
@@ -588,12 +530,24 @@ Bitmaps.prototype.onLoadCreateSprites1 = function(status,image){
         }
     }    
 }
+
+// helper function to be called when image has loaded.
+// Creates sprite list for the image
 Bitmaps.prototype.onLoadCreateSprites = function(status,image){
     if(status === null){
         if(image.image.sprites === undefined){
             if(image.data && image.data.spriteCutter){
                 if(image.data.spriteCutter.how.toLowerCase() === "grid"){
                     this.gridSpriteCutter(image);
+                }else
+                if(image.data.spriteCutter.how.toLowerCase() === "horizonal"){
+                    this.horizontalSpriteCutter(image);
+                }else
+                if(image.data.spriteCutter.how.toLowerCase() === "decode"){
+                    this.checkAndDecodeSpriteData(image);
+                }else
+                if(image.data.spriteCutter.how.toLowerCase() === "file"){
+                    this.loadSpriteList(image);
                 }
             }else{
                 this.horizontalSpriteCutter(image);
@@ -601,6 +555,8 @@ Bitmaps.prototype.onLoadCreateSprites = function(status,image){
         }
     }    
 }
+
+// depreciated function. Will remove as sone as demos have been changed
 Bitmaps.prototype.onLoadCreateHSprites = function(status,image){
     if(status === null){
         if(image.image.sprites === undefined){
@@ -608,6 +564,45 @@ Bitmaps.prototype.onLoadCreateHSprites = function(status,image){
         }
     }    
 }
+Bitmaps.prototype.horizontalSpriteCutter = function(image){
+    var sprites, start, w, h, x, y,ctx, canvas, data
+    function defaultSprite(){
+        sprites = [{
+            x:0,
+            y:0,
+            h:image.image.height,
+            w:image.image.width,
+        }];
+    }
+    if(image.animation || image.video){
+        return undefined;
+    }
+    var filename = image.data.spriteCutter.filename;
+    if(filename === undefined){
+        if(image.filename){
+            filename = path.parse(filename);
+            filename = filename.dir + "\\" + filename.name;
+            filename += ".json";
+        }else{
+            return undefined;
+        }
+    }
+    if(!groover.utils.files.doesFileExist(filename)){
+        // if file can not be found then create a sprite that is the whole image
+        defaultSprite();
+    }else{
+        sprites = groover.utils.files.loadJson(filename);
+        if(sprites === undefined){
+            defaultSprite();
+        }
+    }
+    image.image.sprites = sprites;
+    image.hasSprites = true;
+    image.spriteCount = sprites.length;    
+    return sprites;    
+    
+}
+// Cuts image into sprites by finding the alpha = 0 gaps 
 Bitmaps.prototype.horizontalSpriteCutter = function(image){
     var sprites, start, w, h, x, y,ctx, canvas, data
     if(image.animation || image.video){
@@ -647,6 +642,7 @@ Bitmaps.prototype.horizontalSpriteCutter = function(image){
     image.image.sprites = sprites;
     image.hasSprites = true;
     image.spriteCount = sprites.length;
+    return sprites;
 }
 
 // image must have the following structered object for cutting info in image.data
@@ -743,6 +739,8 @@ Bitmaps.prototype.gridSpriteCutter = function(image){
     image.image.sprites = sprites;
     image.hasSprites = true;
     image.spriteCount = sprites.length;
+    return sprites;
+    
 }
     
     
@@ -897,7 +895,7 @@ Bitmaps.prototype.fixSpriteList = function(inSprites,outSprites){
     return {sprites:ns,spriteGroups:spriteGroups};
 }
 
-
+// returns a image animation object.
 groover.animation = function(){
     var imageCount = 0;
     var loadCount = 0;

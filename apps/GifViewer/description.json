@@ -5,5 +5,9 @@
     "JavaScript" : {
          "scripts" : ["GifViewer.js"], 
          "moduals" : []                            
+    },
+    "settings" : {
+        "welcomeName" : "GIF Groover.",
+        "welcomeMessage" : "Drop groovey GIFs here!"
     }
 }

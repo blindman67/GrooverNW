@@ -171,6 +171,7 @@ groover.code = {
             script.text = modual;
             $A($TN('head')[0],script);
             if(this.parsed){
+                groover.appDescription = appDescription;
                 return true;
             }
             log("Application '"+name+"' did not parse.", "red");
@@ -387,8 +388,7 @@ groover.utils.files = {
         filename = filename.dir + this.OSDelimiter + filename.name + filename.ext;
         try{
             fileStats = fileSystem.statSync(filename);
-        }catch(e){
-            
+        }catch(e){            
             return false;
         }
         return true;

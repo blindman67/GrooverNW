@@ -234,6 +234,7 @@ groover.GIF = function(){
         }
     };
     var finnished = function(){
+        gif.loading = false;
         gif.frameCount = gif.frames.length;            
         gif.lastFrame = undefined;
         st = undefined;
@@ -247,6 +248,12 @@ groover.GIF = function(){
         if(typeof gif.onloadall === "function"){
             (gif.onloadall.bind(gif))({type : 'loadall', path : [gif]});
         }                
+    }
+    var canceled = function(){
+        finnished();
+        if(typeof gif.cancelCallback === "function"){
+            (gif.cancelCallback.bind(gif))({type : 'canceled', path : [gif]});
+        }        
     }
     var parseExt = function(){
         switch (st.data[st.pos++]) {
@@ -267,6 +274,11 @@ groover.GIF = function(){
         }    
     }
     var parseBlock = function () {
+        if(gif.cancel !== undefined && gif.cancel === true){
+            canceled();
+            return;
+        }
+            
         switch (st.data[st.pos++]) { 
             case 0x2c: // image block
                 parseImg();
@@ -283,11 +295,18 @@ groover.GIF = function(){
                 parseExt();
                 break;
         }
-        setTimeout(parseBlock, 0); // parsing frame async so processes can get some time in.
         if(typeof gif.onprogress === "function"){
             gif.onprogress({bytesRead : st.pos, totalBytes : st.data.length, frame : gif.frames.length});
         }        
+        setTimeout(parseBlock, 0); // parsing frame async so processes can get some time in.
     };        
+    var cancelLoad = function(callback){
+        if(gif.complete){
+            return false;
+        }
+        gif.cancelCallback = callback;
+        gif.cancel = true;
+    }
     // fire onload event is set
     var doOnloadEvent = function(){
         gif.currentFrame = 0;
@@ -310,9 +329,11 @@ groover.GIF = function(){
             }
             gif.onerror = undefined;
             gif.onload = undefined;
+            gif.loading = false;
         }
     }
     var loadGif = function(filename){
+        this.loading = true;
         fileSystem.readFile(this.src, dataLoaded.bind(this));
     }
     var gif = {
@@ -322,7 +343,9 @@ groover.GIF = function(){
         onprogress : null,
         onloadall : null,
         load : loadGif,
+        cancel :cancelLoad, 
         waitTillDone : false,
+        loading : false,
         width : null,
         height : null,
         frames : [],

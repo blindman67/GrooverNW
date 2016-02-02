@@ -37,7 +37,24 @@ function GifViewer(owner){
     this.fadeUI = 1;
     this.log =  this.owner.ui.createUI("UILogDisplay","Log",{pos:{x:0,y:0},displayLines:12,font:"14px Lucida Console",width:256});
     this.testGroup = this.owner.ui.createUI("UIGroup","testGroup");
-    this.slider        = this.owner.ui.createUI("UISlider","slider"      ,{min:0,max:100,value:10,x:140,y:-8,width:-10,decimalPlaces:2,digets:3,colour:0,wheelStep : 1,group:this.testGroup,toolTip:"Drag this slider to set the frame location of the gif." });
+    this.slider = this.owner.ui.createUI(
+        "UISlider",
+        "slider",
+        {
+            min:0,
+            max:100,
+            value:0,
+            x:140,
+            y:-8,
+            width:-10,
+            decimalPlaces:2,
+            digets:3,
+            wheelStep : 0.25,
+            group:this.testGroup,
+            ondrag : this.setPause.bind(this),
+            toolTip:"Drag slider to set the time.\nUse the mouse wheel to\nstep quarter seconds." 
+         }
+    );
     var icons = [
         {
             filenames : ["icons\\speedSlowerOn.png","icons\\speedSlowerOff.png"],
@@ -93,7 +110,7 @@ function GifViewer(owner){
             }).bind(this),
         },
         {
-            filenames : ["icons\\playOn.png","icons\\playOff.png","icons\\pauseOn.png","icons\\pauseOff.png"],
+            filenames : ["icons\\pauseOn.png","icons\\pauseOff.png","icons\\playOn.png","icons\\playOff.png"],
             x: 104,
             y : -12, // negative is distance from the bottom of view to bottom of icon
             w : 32, // if there is a negative heigth or width then the value is calculated to fit that
@@ -101,9 +118,22 @@ function GifViewer(owner){
             toolTip : "Click to toggle play and pause",
             cursor : "pointer",
             onclick : this.togglePlay.bind(this),
+            
         },
     ]
     this.iconButtons = this.owner.ui.createUI("UIIconButtons","controls",{icons:icons});
+}
+GifViewer.prototype.setPlay = function(){
+    if(this.play){
+        return;
+    }
+    this.togglePlay();    
+}
+GifViewer.prototype.setPause = function(){
+    if(!this.play){
+        return;
+    }
+    this.togglePlay();    
 }
 GifViewer.prototype.togglePlay = function(){
     if(this.play){
@@ -133,8 +163,8 @@ GifViewer.prototype.lostView = function(){
 // draws a nice And way over kill welcome screen.
 GifViewer.prototype.iconsAvaliable = function(imageGroup){
     this.icons = imageGroup;
-    var text = "GIF GROOVER!";
-    var text1 = "Drag and drop your groovey GIFs here...";
+    var text = groover.appDescription.settings.welcomeName ? groover.appDescription.settings.welcomeName:"GIF GROOVER!";
+    var text1 = groover.appDescription.settings.welcomeMessage ? groover.appDescription.settings.welcomeMessage:"Drag and drop your groovey GIFs here...";;
     var h = this.candy.image.height;
     var w = this.candy.image.width;
     var grA = this.gradients.createLightGrad(
@@ -239,18 +269,33 @@ GifViewer.prototype.iconsAvaliable = function(imageGroup){
 
 
 GifViewer.prototype.imageLoaded = function(imageGroup){
-    if(imageGroup.list[0].video){
-        imageGroup.list[0].image.play();
-        imageGroup.list[0].image.loop = true;
-        groover.busy = false;
-    }
     var img = this.gifImage.image.frames[0].image;
     this.transform.fitView(-img.width/2,-img.height/2,img.width/2,img.height/2,"fit");
-    this.playTime = 0;
-    
-
+    this.playTime = 0;    
+    this.setPlay();
 }
 GifViewer.prototype.imageDropped = function(file){
+    if(this.gifImages){
+        if(this.gifImage){
+            if(this.gifImage.image.loading){
+                var who = this;
+                if(this.gifImage.image.cancel(
+                        function(){
+                            who.loadGif(file);
+                        })
+                    ){
+                    return;
+                }
+            }
+            this.gifImage.remove = true;
+            this.bitmaps.cleanImageGroup(this.gifImages);            
+        }
+    }
+    this.loadGif(file);
+}    
+GifViewer.prototype.loadGif = function(file){
+
+    log("Loading Image '"+file.path+"'","#0F0");
     this.gifImages = this.bitmaps.startLoad("gifImages",this.imageLoaded.bind(this));
     this.gifImage = this.bitmaps.load("gifImages",file.path);
     this.gifImage.image.onloadall = function(){groover.busy = false;};
@@ -328,7 +373,7 @@ GifViewer.prototype.display = function(){
             this.transform.update();
             this.transform.setTransform();
         }
-        if(this.gifImage !== undefined){
+        if(this.gifImage !== undefined && this.gifImage.ready === true){
             img = this.gifImage.image;
             frames = img.frames;
             len = frames.length;
@@ -366,8 +411,12 @@ GifViewer.prototype.display = function(){
                     this.slider.value = ((this.playTime)/1000) % (this.gifTotalTime/1000);
                 }
                 this.render.drawBitmapGSRA(frames[Math.floor(frameIndex)].image,0,0,1,0,1);
-                var fade = (frameIndex%1)
-                this.render.drawBitmapGSRA(frames[Math.floor(frameIndex+1)%frameCount].image,0,0,1,0,fade);
+                
+                // only fade if playing and if not playing only if not at last frame
+                if(this.play || (!this.play && Math.floor(frameIndex+1)%frameCount > Math.floor(frameIndex))){
+                    var fade = (frameIndex%1)
+                    this.render.drawBitmapGSRA(frames[Math.floor(frameIndex+1)%frameCount].image,0,0,1,0,fade);
+                }
                 
                 if(this.time < this.gifLoadTime){
                     if(img.comment !== ""){

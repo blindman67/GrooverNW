@@ -84,6 +84,7 @@
             canvas : undefined,
             draggingSlider : false,
             dragStartPos : 0,
+            ondrag : typeof settings.ondrag === "function"?settings.ondrag:undefined,
             mouseWheelStep : settings.wheelStep,
             digets : settings.digets,
             numWidth : settings.digets * 20 + 15,
@@ -156,7 +157,9 @@
                     var pos = Math.round(((this.value - this.min) / (this.max - this.min)) * w  + this.handleWidth/2);
                     if(m.mouse.mousePrivate === m.id){
                         if(this.draggingSlider){
-                            
+                            if(this.ondrag !== undefined){
+                                this.ondrag(this);
+                            }
                             if(!m.mouse.B1){
                                 this.draggingSlider = false;
                                 m.releaseMouse();
@@ -194,6 +197,9 @@
                                 }else{
                                     this.value -= this.mouseWheelStep;
                                 }
+                                if(this.ondrag !== undefined){
+                                    this.ondrag(this);
+                                }                                
                                 m.mouse.w = 0;
                                 this.value = Math.min(this.max,Math.max(this.min,this.value));
                             }
