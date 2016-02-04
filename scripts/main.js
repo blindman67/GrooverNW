@@ -44,7 +44,6 @@ if(DEBUG){
         moduals.push(this.render = new Render(this));
         moduals.push(this.ui = new UI(this));
         moduals.push(this.app = new groover.application(this));
-        new DropManager(document.body, this.fileDropped.bind(this), [DropManager.prototype.mimeTypes.all]);
         //groover.win.maximize();
         window.addEventListener("resize",this.resize.bind(this));
         var checkModuals = (function(){
@@ -65,7 +64,7 @@ if(DEBUG){
     }
     Groover.prototype.readyToStart = function(){
         groover.loader.progress(1);
-        new DropManager(document.body, this.fileDropped.bind(this), [DropManager.prototype.mimeTypes.all]);
+        new DropManager(document.body, this.fileDropped.bind(this), [DropManager.prototype.mimeTypes.all],"first");
         this.animFrame.addFrameStartFunction(this.ui.update.bind(this.ui));
         this.animFrame.addFrameStartFunction(this.app.update.bind(this.app));
         this.animFrame.addFrameEndFunction(this.app.display.bind(this.app));

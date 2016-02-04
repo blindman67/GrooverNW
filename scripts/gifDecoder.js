@@ -159,8 +159,13 @@ groover.GIF = function(){
             }
             return newPixels;
         };
-        frame = {}
-        gif.frames.push(frame);
+        //if(gif.delayTime === 0 && gif.frames.length > 0){
+        //    frame = gif.frames[gif.frames.length-1];
+        //    log("Repeated frame @F:"+(gif.frames.length-1));
+        //}else{
+            frame = {}
+            gif.frames.push(frame);
+        //}
         frame.disposalMethod = gif.disposalMethod;
         frame.delay = gif.delayTime;
         gif.totalDelay += frame.delay;
@@ -181,7 +186,7 @@ groover.GIF = function(){
         frame.pixels = lzwDecode(st.data[st.pos++], st.readSubBlocksB());
         if ( bitField & 0b1000000) { // Move
             // Going to ignore this to find out how often it is used
-            //frame.pixels = deinterlace(frame.pixels, frame.width);
+            frame.pixels = deinterlace(frame.pixels, frame.width);
         }
         processFrame(frame);
     };

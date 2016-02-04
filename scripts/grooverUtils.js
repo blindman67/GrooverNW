@@ -273,6 +273,12 @@ groover.directories = {
     },
     home : path.parse("D:\\Marks\\Dev\\GrooverNW"),
 };
+
+// general file utilites
+// load and save text
+// load and save JSON
+// doesFileExist returns true if the file can be found
+// resolveFilename returns full path for a filename. This is not a relative resolve
 groover.utils.files = {
     error : {
         error : false,
@@ -424,4 +430,130 @@ groover.utils.files = {
         return this.saveText(filename,text);
     }
     
+}
+
+groover.utils.namedStyles = {
+    DEFAULT : {
+        fillStyle : "White",
+        strokeStyle : "BLUE",
+        lineWidth : 3,
+        lineJoin : "round",
+        lineCap : "round",
+        font : "arial",
+        textAlign : "left",
+        textBaseline : "middle",
+        miterLimit : 0,
+        inset : 0,
+        fontSize : 16,
+        fontColour : "white",
+        rounding : 4,
+    },
+        
+}
+// for creating styles.
+groover.utils.styles = {
+    attributes : "inset,fontSize,fontColour,fillStyle,strokeStyle,lineWidth,lineJoin,lineCap,font,textAlign,textBaseline,miterLimit".split(","),
+    setFontStyle : function ( style, font, fontSize, fontColour,textAlign, textBaseline ){
+        style.font = font === null || font === undefined ? style.font : font;
+        style.fontSize = fontSize === null || fontSize === undefined ? style.fontSize : fontSize;
+        style.fontColour = fontColour === null || fontColour === undefined ? style.fontColour : fontColour;
+        style.textAlign = textAlign === null || textAlign === undefined ? style.textAlign : textAlign;
+        style.textBaseline = textBaseline === null || textBaseline === undefined ? style.textBaseline : textBaseline;
+        return style;
+    },
+    setDrawStyle : function ( style, col, lineCol, lineWidth, rounding, inset){
+        style.fillStyle     = col === null || col === undefined             ? style.fillStyle   : col;
+        style.strokeStyle   = lineCol === null || lineCol === undefined     ? style.strokeStyle : lineCol;
+        style.lineWidth     = lineWidth === null || lineWidth === undefined ? style.lineWidth   : lineWidth;
+        style.rounding      = rounding === null || rounding === undefined   ? style.rounding    : rounding;
+        style.inset         = inset === null || inset === undefined         ? style.inset       : inset;
+        return style;
+        
+    },
+    assignToContext : function ( ctx, style) {
+        ctx.fillStyle    = style.fillStyle;
+        ctx.strokeStyle  = style.strokeStyle;
+        ctx.lineWidth    = style.lineWidth;
+        ctx.lineJoin     = style.lineJoin ;
+        ctx.lineCap      = style.lineCap;
+        ctx.font         = style.fontSize + "px "+style.font;
+        ctx.textAlign    = style.textAlign;
+        ctx.textBaseline = style.textBaseline;
+        ctx.miterLimit   = style.miterLimit;
+        // fontColour 
+        // fontSize          
+    },
+    assignFontToContext : function ( ctx, style) {
+        ctx.fillStyle    = style.fontColour;
+        ctx.font         = style.fontSize + "px "+style.font;
+        ctx.textAlign    = style.textAlign;
+        ctx.textBaseline = style.textBaseline;
+    },
+    assignDrawToContext : function ( ctx, style) {
+        ctx.fillStyle    = style.fillStyle;
+        ctx.strokeStyle  = style.strokeStyle;
+        ctx.lineWidth    = style.lineWidth;
+        ctx.lineJoin     = style.lineJoin ;
+        ctx.lineCap      = style.lineCap;
+        ctx.miterLimit   = style.miterLimit;
+
+    },
+    setDefultStyle : function ( style ) {
+        groover.utils.namedStyles.DEFAULT = style;
+        return style;
+    },
+    validateStyle : function ( style ) {
+        for (var i = 0; i < this.attributes.length; i++) {
+            if(style[this.attributes[i]] === null || style[this.attributes[i]] === undefined){
+                style[this.attributes[i]] = groover.utils.namedStyles.DEFAULT[this.attributes[i]];
+            }
+        }
+        return style;        
+    },
+    copyStyle : function ( style ){
+        var cStyle = {};
+        for (var i = 0; i < this.attributes.length; i++) {
+            if(style[this.attributes[i]] === null || style[this.attributes[i]] === undefined){
+                cStyle[this.attributes[i]] = groover.utils.namedStyles.DEFAULT[this.attributes[i]];
+            }else{
+                cStyle[this.attributes[i]] = style[this.attributes[i]];
+            }
+        }
+        return style;
+        
+    },
+    createDrawStyle : function (name, col, lineCol, lineWidth, rounding, inset) {
+        var style = {};
+        for (var i = 0; i < this.attributes.length; i++) {
+            style[this.attributes[i]] = groover.utils.namedStyles.DEFAULT[this.attributes[i]];
+        }
+        style.fillStyle     = col === null || col === undefined             ? style.fillStyle   : col;
+        style.strokeStyle   = lineCol === null || lineCol === undefined     ? style.strokeStyle : lineCol;
+        style.lineWidth     = lineWidth === null || lineWidth === undefined ? style.lineWidth   : lineWidth;
+        style.rounding      = rounding === null || rounding === undefined   ? style.rounding    : rounding;
+        style.inset         = inset === null || inset === undefined         ? style.inset       : inset;
+        
+        if(typeof name === "string"){
+            groover.utils.namedStyles[name] = style;
+        }
+        return style;
+        
+    },
+    createFontStyle : function (name, font, fontSize, fontColour, textAlign, textBaseline ) {
+        var style = {};
+        for (var i = 0; i < this.attributes.length; i++) {
+            style[this.attributes[i]] = groover.utils.namedStyles.DEFAULT[this.attributes[i]];
+        }
+        style.font = font === null || font === undefined ? style.font : font;
+        style.fontSize = fontSize === null || fontSize === undefined ? style.fontSize : fontSize;
+        style.fontColour = fontColour === null || fontColour === undefined ? style.fontColour : fontColour;
+        style.textAlign = textAlign === null || textAlign === undefined ? style.textAlign : textAlign;
+        style.textBaseline = textBaseline === null || textBaseline === undefined ? style.textBaseline : textBaseline;
+        
+        if(typeof name === "string"){
+            groover.utils.namedStyles[name] = style;
+        }
+        return style;
+        
+    },    
 }

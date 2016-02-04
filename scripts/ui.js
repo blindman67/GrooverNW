@@ -390,9 +390,7 @@ UI.prototype.createLocationInterface = function(owner,group){
             if(w !== undefined){
                 if(w < 0){
                     if(x !== undefined && x >= 0){
-                        log(w);
                         w = (this.owner.owner.view.width - x) + w;
-                        log(w);
                     }
                 }
                 this.w = w;
@@ -460,6 +458,7 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
         positionsId : 0,   // if icons are seperated location are use this tracks which location is over    
         positionsIndex : -1, // the index of the seperated icon/location
         over : false,
+        overReal : false,   // like over but ignores hold flag
         canHoldMouse : canHoldMouse || canHoldMouse === undefined ? true : false,
         hold : false,
         inactive : false,
@@ -518,8 +517,10 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
             }
             if(over){
                 this.over = true;
+                this.overReal = true;
             }else{
                 this.over = false;
+                this.overReal = false;
                 this.overCount = 0;
             }            
         },
@@ -531,11 +532,26 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
             if(this.inactive){
                 return;
             }
-            if(this.hold){
-                this.over = true;
-                this.overCount += 1;
-                this.x = mx - l.x;
-                this.y = my - l.y;
+            if(this.hold && l.group !== undefined && !l.group.mouse.over){
+                over = false
+                if(l.list === undefined){
+                    if(mx >= l.x && mx < l.x + l.w && my >= l.y && my < l.y + l.h){
+                        over = true;
+                    }
+                    this.overReal = over;
+                    this.x = mx - l.x;
+                    this.y = my - l.y;
+                }else{
+                    if(this.positionsIndex > -1){
+                        il = l.list[this.positionsIndex];
+                        if(mx >= il.x && mx < il.x + il.w && my >= il.y && my < il.y + il.h){
+                            over = true;
+                        }                           
+                        this.x = mx - l.x;
+                        this.y = my - l.y;
+                    }
+                    this.overReal = over;
+                }
             }else
             if(l.group === undefined || l.group.mouse.over){
                 over = false;
@@ -544,27 +560,48 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
                         over = true;
                         this.x = mx - l.x;
                         this.y = my - l.y;
+                        this.overReal = true;
                     }
+                    if(this.hold && !over){
+                        over = true;
+                        this.overReal = false;
+                        this.x = mx - l.x;
+                        this.y = my - l.y;
+                    }                     
                 }else{
-                    len = l.list.length;
-                    for(var i = 0 ; i < len; i++){
-                        il = l.list[i];
-                        if(mx >= il.x && mx < il.x + il.w && my >= il.y && my < il.y + il.h){
-                            over = true
-                            this.x = mx - il.x;
-                            this.y = my - il.y;
-                            if(this.positionsId !== il.id){
-                                this.overCount = 0;                                                    
+                    if(!this.hold){
+                        len = l.list.length;
+                        for(var i = 0 ; i < len; i++){
+                            il = l.list[i];
+                            if(mx >= il.x && mx < il.x + il.w && my >= il.y && my < il.y + il.h){
+                                over = true
+                                this.x = mx - il.x;
+                                this.y = my - il.y;
+                                if(this.positionsId !== il.id){
+                                    this.overCount = 0;                                                    
+                                }
+                                this.positionsId = il.id;
+                                this.positionsIndex = i;
+                                break;
                             }
-                            this.positionsId = il.id;
-                            this.positionsIndex = i;
-                            break;
                         }
-                    }
+                    }else{
+                        if(this.positionsIndex > -1){
+                            il = l.list[this.positionsIndex];
+                            if(mx >= il.x && mx < il.x + il.w && my >= il.y && my < il.y + il.h){
+                                over = true;
+                            }                           
+                            this.x = mx - l.x;
+                            this.y = my - l.y;
+                        }
+                        this.overReal = over;
+                        over = true;
+                    }                     
                     if(!over){
                         this.positionsIndex = -1;
                     }
                 }
+               
                 if(over){
                     this.over = true;
                     this.overCount += 1;                    
@@ -598,13 +635,18 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
         },      
     }
 }
-UI.prototype.createUI = function(){
-}
 
-UI.prototype.UIGroup = function(name,data,owner){
+UI.prototype.UIGroup = function(name,settings,owner){
+    var UI = this;
+    if(settings === undefined){
+        settings = {};
+    }
     var ui = {
         owner:owner,
         name:name,
+        settings:settings,
+        canvas : undefined,
+        dirty : true,
         items : [],
         updateList : [],
         displayList : [],
@@ -633,9 +675,24 @@ UI.prototype.UIGroup = function(name,data,owner){
                 yM = Math.max(item.y + item.h, yM);
             }
             this.location.set(xm, ym, xM - xm, yM - ym);
+            this.dirty = true;
         },
-        update : function(){
+
+        setup : function(){  
+            if(this.settings.ownCanvas){
+                 this.canvas = UI.createCanvas(this.location.w,this.location.h)
+            }
+            
+        },
+        redraw : function(){
+            this.setup();
+            this.dirty = false;
+        },
+        update : function(){            
             var i, len;
+            if(this.dirty){
+                this.redraw();
+            }
             len = this.updateList.length;
             for(i = 0; i < len; i++){
                 this.updateList[i].update();
@@ -644,8 +701,20 @@ UI.prototype.UIGroup = function(name,data,owner){
         display : function(){
             var i, len;
             len = this.displayList.length;
-            for(i = 0; i < len; i++){
-                this.displayList[i].display();
+            if(this.canvas !== undefined){
+                var rend = UI.render;
+                rend.pushCTX(this.canvas.ctx);
+                for(i = 0; i < len; i++){
+                    this.displayList[i].display();
+                }                
+                rend.popCTX();
+                rend.drawBitmapSize(this.canvas,l.x,l.y,l.w,l.h,1);                
+                
+            }else{
+                for(i = 0; i < len; i++){
+                    this.displayList[i].location.alpha = this.location.alpha;
+                    this.displayList[i].display();
+                }
             }
         },
             
@@ -673,20 +742,20 @@ UI.prototype.UIStub = function(name,data,owner){
     ui.location.set = groover.code.moduals.stub;
     return ui;
 }
-UI.prototype.createUI = function(UIType,name,data,owner){
+UI.prototype.createUI = function(UIType,name,settings,owner){
     if(owner === undefined){
         owner = this;
     }
     if(this[UIType] !== undefined){
-        return this[UIType](name,data,owner);
+        return this[UIType](name,settings,owner);
     }
     var UI = groover.code.load(UIType);
     if(UI !== undefined){
         if(UI.create !== undefined){
-            return UI.create(name,data,this,owner);
+            return UI.create(name,settings,this,owner);
         }
         return UI;
     }
-    return this.UIStub(name,data,owner);
+    return this.UIStub(name,settings,owner);
 }
 

@@ -1,4 +1,5 @@
 (function () {  // CheckBox UI
+    var shapes;
     var create = function (name,settings,UI,owner) {
         var tempX,tempY,tempH,tempW;
         if(owner === undefined){
@@ -14,16 +15,26 @@
             ui.update();
 
         }
+     
+        if(settings.barStyle === undefined){
+            settings.barStyle = groover.utils.namedStyles.UICheckBox;
+        }        
+        if(settings.checkStyle === undefined){
+            settings.checkStyle = groover.utils.namedStyles.UICheckBoxChecked;
+        }        
+        if(settings.uncheckStyle === undefined){
+            settings.uncheckStyle = groover.utils.namedStyles.UICheckBoxUnchecked;
+        }        
+        if(settings.fontStyle === undefined){
+            settings.fontStyle = groover.utils.styles.copyStyle(groover.utils.namedStyles.UIFont);
+        }        
+        settings.height = settings.height===undefined?40:settings.height;        
+        settings.fontStyle.fontSize = Math.max(12,settings.height-Math.floor(settings.height/2));
+        settings.fontStyle.textAlign = "left";
+        settings.fontStyle.textBaseline = "middle";
+
         // if not loading sprites then call uiReady manualy
-        UI.icons = UI.bitmaps.startLoad("icons",uiReady);
-        var charcterSetData = {
-            spriteCutter:{
-                how:"grid",
-                pixelWidth : 10,
-                pixelHeight : 10,
-                repackWidth : true,
-            }
-        };
+
         var ui = {
             owner : owner,
             name : name,
@@ -45,25 +56,10 @@
             toolTip : settings.toolTip,
             text : settings.text,
             ready : false,
-            dirty : true,
-            currentType : (function(){
-                var types = {
-                    greenRed : { off : 6, on : 7 },
-                    defaultSet : { off : 8, on : 9 },
-                    tick : { off : 8, on : 9 },
-                    tickCross : { off : 12, on : 9 },
-                    yesNo : { off : 16, on : 15 },
-                    onOff : { off : 14, on : 13 },
-                    blackWhite : { off : 11, on : 10 },
-                };
-                if(types[settings.type] !== undefined){
-                    return types[settings.type];
-                }
-                return types.defaultSet;
-            })(),
-                
-            sprites : UI.bitmaps.load("icons", "icons/SmallText.png", "smallText", UI.bitmaps.onLoadCreateSprites.bind(UI.bitmaps)),
-            characters : UI.bitmaps.load("icons", "icons/CharacterSet10By10.png", "characterSet", UI.bitmaps.onLoadCreateSprites.bind(UI.bitmaps), charcterSetData),
+            dirty : true,    
+            hoverVal : 0,
+            hover : true,
+            holding : false,
             canvas : undefined,
             settings : settings,
             onchecked :settings.onchecked,
@@ -74,10 +70,11 @@
                         this.location.set(settings.x,settings.y);
                 }else{
                     if(settings.width === undefined || settings.width <= 0){
-                        var w = this.owner.render.measureSpriteText(this.characters.image,this.text,33);
-                        w += Math.max(this.sprites.image.sprites[this.currentType.on].w,this.sprites.image.sprites[this.currentType.off].w);
-                        w += 8;
-                        this.canvas = this.owner.createCanvas(w, this.sprites.image.height);
+                        this.canvas = this.owner.createCanvas(10,settings.height);
+                        this.canvas.ctx.font = settings.fontStyle.fontSize + "px "+ settings.fontStyle.font;
+                        var w = this.canvas.ctx.measureText(this.text).width;
+                        w += settings.height* 1.25;
+                        this.canvas = this.owner.createCanvas(w,settings.height);
                         this.location.set(settings.x,settings.y);
                         
                     }else{
@@ -85,26 +82,25 @@
                         this.location.set(settings.x,settings.y);
                     }
                 }
+
             },            
             redraw : function(){
-                var rend = this.owner.render;
-                var img = this.sprites.image;
-                var w = 0;
-                var cw = this.canvas.width;
+                var cw,ins,h;
+                cw = this.canvas.width;
+                h = this.canvas.height;
                 this.canvas.ctx.setTransform(1,0,0,1,0,0);
                 this.canvas.ctx.clearRect(0,0,cw,this.canvas.height);
-                rend.pushCTX(this.canvas.ctx);
-                rend.drawSpriteA(img, 0, 0, 0, 1);
-                rend.drawSpriteAW(img,1, 3, 0, cw-6, 1);
-                rend.drawSpriteA(img,2, cw-4, 0, 1);
-                if(this.checked){
-                    rend.drawSpriteA(img, this.currentType.on, 3, 0, 1);
-                }else{
-                    rend.drawSpriteA(img, this.currentType.off, 3, 0, 1);
+                ins = settings.barStyle.lineWidth + settings.barStyle.inset;
+                shapes.drawRectangle(this.canvas, ins, ins, cw - ins * 2, h - ins * 2, settings.barStyle);
+                if (this.checked) {
+                    ins = settings.checkStyle.lineWidth + settings.checkStyle.inset;
+                    shapes.drawRectangle(this.canvas, ins, ins, h - ins * 2, h - ins * 2, settings.checkStyle);
+                } else {
+                    ins = settings.uncheckStyle.lineWidth + settings.uncheckStyle.inset;
+                    shapes.drawRectangle(this.canvas, ins, ins, h - ins * 2, h - ins * 2, settings.uncheckStyle);
                 }
-                w = Math.max(img.sprites[this.currentType.on].w,img.sprites[this.currentType.off].w);
-                rend.drawSpriteText(this.characters.image,w + 6,4,this.text,33);
-                rend.popCTX();
+                groover.utils.styles.assignFontToContext(this.canvas.ctx, settings.fontStyle);
+                this.canvas.ctx.fillText(this.text,this.location.h * 1,this.location.h * 0.5);
                 this.dirty = false;
             },
             update : function () {
@@ -112,18 +108,28 @@
                     var m = this.mouse;
                     m.isMouseOver();
                     if(m.mouse.mousePrivate === m.id){
+                        this.hover = true;
                         m.mouse.requestCursor("pointer", m.id);
                         if(m.mouse.B1 && ! m.hold){
                             m.holdMouse();
+                            this.holding = true;
                         }
                         if(m.hold && m.mouse.oldB1 && !m.mouse.B1){
                             m.mouse.oldB1 = false;
                             m.releaseMouse();
-                            if(m.over){
+                            if(m.over && this.holding){
                                 this.setChecked(! this.checked);
                             }
+                            this.holding = false;
                         }
+                        if(!m.overReal && m.hold){
+                            this.holding = false;
+                        }
+                        
+                    }else{
+                        this.hover = false;
                     }
+
                     if(this.dirty){
                         this.redraw();
                     }
@@ -131,13 +137,66 @@
             },
             display : function () {
                 var l = this.location;
-                this.owner.render.drawBitmapSize(this.canvas, l.x, l.y, l.w, l.h, l.alpha);
+                var e,w;
+                if(this.hover){
+                    if(this.hoverVal < 1){
+                        this.hoverVal += 0.1;
+                        if(this.hoverVal > 1){
+                            this.hoverVal = 1;
+                        }
+                    }
+                }else{
+                    if(this.hoverVal > 0){
+                        this.hoverVal -= 0.02;
+                        if(this.hoverVal < 0){
+                            this.hoverVal = 0;
+                        }
+                    }
+                }
+                e = mMath.easeInOut(this.hoverVal,3);
+                var r = settings.barStyle.rounding;
+                var tw = l.h-settings.checkStyle.lineWidth * 2;
+                if(e <= 0){
+                    this.owner.render.drawBitmapPart(this.canvas,l.x,l.y,0,0,tw,l.h,l.alpha);
+                    this.owner.render.drawBitmapPart(this.canvas,l.x+tw,l.y,l.w-r,0,r,l.h,l.alpha);
+                }else
+                if(e === 1){
+                    this.owner.render.drawBitmapSize(this.canvas, l.x, l.y, l.w, l.h, l.alpha);
+                }else{
+                    
+                    this.owner.render.drawBitmapPart(this.canvas,l.x,l.y,0,0,tw,l.h,l.alpha);
+                    w = (l.w-tw-r)*e + r;
+                    this.owner.render.drawBitmapPart(this.canvas,l.x+tw,l.y, l.w-w,0,w,l.h,l.alpha);
+                }
+                //this.owner.render.drawBitmapSize(this.canvas, l.x, l.y, l.w, l.h, l.alpha);
             }
         }
         ui.mouse = UI.createMouseInterface(ui);
+        uiReady();
         return ui;
     }
+    
+    var configure = function(){
+        if(shapes === undefined){
+            shapes = groover.code.load("shapes2D");
+        }
+        if(typeof groover !== "undefined" && groover.utils !== undefined && groover.utils.namedStyles !== undefined){
+            if(groover.utils.namedStyles.UIFont === undefined){
+                groover.utils.styles.createFontStyle("UIFont","arial",20,"white");
+            }
+            if(groover.utils.namedStyles.UICheckBox === undefined){
+                groover.utils.styles.createDrawStyle("UICheckBox","Blue","white",2,6,0);
+            }
+            if(groover.utils.namedStyles.UICheckBoxChecked === undefined){
+                groover.utils.styles.createDrawStyle("UICheckBoxChecked","RED","white",2,6,3);
+            }
+            if(groover.utils.namedStyles.UICheckBoxUnchecked === undefined){
+                groover.utils.styles.createDrawStyle("UICheckBoxUnchecked","Green","white",2,6,5);
+            }            
+        }
+    }    
     return {
         create : create,
+        configure : configure,
     };
 })();

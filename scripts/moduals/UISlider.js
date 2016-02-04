@@ -1,51 +1,85 @@
 (function () {  // Slider Small UI
     var shapes;
     var create = function (name,settings,UI,owner) {
-        var h;
-        if(settings.height === undefined){
-            settings.height = 40;
+        var h,ww;
+        
+
+
+                
+        if(settings.handleStyle === undefined){
+            settings.handleStyle = groover.utils.namedStyles.UISliderHandle;            
         }
+        if(settings.barStyle === undefined){
+            settings.barStyle = groover.utils.namedStyles.UISlider;            
+        }
+        if(settings.numDisplayStyle === undefined){
+            settings.numDisplayStyle = groover.utils.namedStyles.UISliderDisplay;            
+        }
+        if(settings.fontStyle === undefined){
+            settings.fontStyle = groover.utils.styles.copyStyle(groover.utils.namedStyles.UIFont);
+        }         
+        settings.height = settings.height===undefined?40:settings.height;
         h = settings.height;
+        ww = Math.floor(h + 20);        
+        settings.handleWidth = settings.handleWidth===undefined?30:settings.handleWidth;
+        if(settings.handleWidth < (settings.handleStyle.rounding + settings.handleStyle.inset)*2 + 10){
+            settings.handleWidth = (settings.handleStyle.rounding + settings.handleStyle.inset)*2 + 10;
+        }
+        settings.fontStyle.fontSize = Math.max(12,settings.height-Math.floor(settings.height/4));
+
+
+
+        
         if(owner === undefined){
             owner = UI;
         }
         
-        var handle = UI.bitmaps.create("icons",30,h, "handle")
-        var bar = UI.bitmaps.create("icons",60,h, "bar")
-        var numContainer = UI.bitmaps.create("icons",60,h, "numContainer")
+        var handle = UI.bitmaps.create("icons",settings.handleWidth,h, "handle")
+        var bar = UI.bitmaps.create("icons",(settings.barStyle.rounding + settings.barStyle.inset)*2 + 10,h, "bar")
+        var numContainer = UI.bitmaps.create("icons",(settings.numDisplayStyle.rounding + settings.numDisplayStyle.inset)*2 + 10,h, "numContainer")
         var numSprites = UI.bitmaps.create("icons",600,h, "customSlider")
 
         var lw = 3;
        
         if(!handle.drawn){
-            var b4 = shapes.createStyle("#FFF","Black",lw,8);
-            shapes.drawRectangle(handle.image,lw,lw*2,30-lw*2,h-lw*4,b4);
+            lw = settings.handleStyle.lineWidth + settings.handleStyle.inset ;
+            shapes.drawRectangle(handle.image,lw,lw,settings.handleWidth-lw*2,h-lw*2,settings.handleStyle);
             handle.drawn = true;
         }
         if(!bar.drawn){
-            var b1 = shapes.createStyle("#00F","White",lw,8);
-            shapes.drawRectangle(bar.image,lw,lw*4,60-lw*2,h-lw*8,b1);
+            lw = settings.barStyle.lineWidth + settings.barStyle.inset ;
+            ww = (settings.barStyle.rounding + settings.barStyle.inset)*2+10;
+            shapes.drawRectangle(bar.image,lw,lw,ww-lw*2,h-lw*2,settings.barStyle );
+            ww = (settings.barStyle.rounding + settings.barStyle.inset);
             bar.image.sprites = [];
-            bar.image.sprites.push({x:0,y:0,w:10,h:h});
-            bar.image.sprites.push({x:10,y:0,w:40,h:h});
-            bar.image.sprites.push({x:50,y:0,w:10,h:h});
+            bar.image.sprites.push({x:0,y:0,w:ww,h:h});
+            bar.image.sprites.push({x:ww,y:0,w:bar.image.width-ww*2,h:h});
+            bar.image.sprites.push({x:bar.image.width-ww,y:0,w:ww,h:h});
             bar.drawn = true;
         }
         if(!numContainer.drawn){
-            var b3 = shapes.createStyle("#00F","White",lw,8);
-            shapes.drawRectangle(numContainer.image,lw,lw,60-lw*2,h-lw*2,b3);
+            lw = settings.numDisplayStyle.lineWidth + settings.numDisplayStyle.inset ;
+            ww = (settings.numDisplayStyle.rounding + settings.numDisplayStyle.inset)*2+ 10;
+            shapes.drawRectangle(numContainer.image,lw,lw,ww-lw*2,h-lw*2,settings.numDisplayStyle);
+            ww = (settings.numDisplayStyle.rounding + settings.numDisplayStyle.inset);
             numContainer.image.sprites = [];
-            numContainer.image.sprites.push({x:0,y:0,w:10,h:h});
-            numContainer.image.sprites.push({x:10,y:0,w:40,h:h});
-            numContainer.image.sprites.push({x:50,y:0,w:10,h:h});        
+            numContainer.image.sprites.push({x:0,y:0,w:ww,h:h});
+            numContainer.image.sprites.push({x:ww,y:0,w:numContainer.image.width-ww*2,h:h});
+            numContainer.image.sprites.push({x:numContainer.image.width-ww,y:0,w:ww,h:h});        
             numContainer.drawn = true;
         }
         if(!numSprites.drawn){
-            numSprites.image.ctx.font = Math.max(12,h-10)+"px arial";
+            numSprites.image.ctx.font = settings.fontStyle.fontSize+"px "+settings.fontStyle.font
             numSprites.image.ctx.textBaseline = "middle";
             numSprites.image.ctx.textAlign = "left";
-            numSprites.image.ctx.fillStyle = "white";
+            numSprites.image.ctx.fillStyle = settings.fontStyle.fontColour;
             numSprites.image.ctx.fillText("0 1 2 3 4 5 6 7 8 9 . + -",0,h/2);
+            var chars = "0123456789.+-";
+            var maxWidth = 0;
+            for(var i = 0; i < chars.length; i ++){
+                maxWidth = Math.max(maxWidth,numSprites.image.ctx.measureText(chars[i]).width);
+            }
+            settings.fontWidth = maxWidth+2;
             UI.bitmaps.horizontalSpriteCutter(numSprites);
             numSprites.drawn = true;
         }
@@ -87,13 +121,13 @@
             ondrag : typeof settings.ondrag === "function"?settings.ondrag:undefined,
             mouseWheelStep : settings.wheelStep,
             digets : settings.digets,
-            numWidth : settings.digets * 20 + 15,
-            handleWidth : undefined,
+            numWidth : (settings.digets + 1) * settings.fontWidth,
+            handleWidth : settings.handleWidth,
             location : undefined, // stub till ready to set location
             setup : function () {
-                this.numWidth = settings.digets * 20 + 15;
+                this.numWidth = (settings.digets + 1) * settings.fontWidth;
                 if(settings.decimalPlaces > 0){
-                    this.numWidth += settings.decimalPlaces * 20 + 10;
+                    this.numWidth += settings.decimalPlaces * settings.fontWidth + Math.floor(settings.fontWidth*0.5);
                 }
                 this.digets = settings.digets+settings.decimalPlaces
                 this.location.set(this.settings.x, this.settings.y, this.settings.width, this.settings.height);
@@ -115,32 +149,34 @@
                 var rend = this.owner.render;
                 this.canvas.ctx.clearRect(0,0,w,this.canvas.height);
                 rend.pushCTX(this.canvas.ctx);
+                var pw = bar.sprites[0].w;
                 rend.drawSpriteA(bar, 0, 0, 0, 1);
-                rend.drawSpriteAW(bar,  1, 10, 0, w-nw-20, 1);
-                rend.drawSpriteA(bar, 2, w-nw-10, 0, 1);
+                rend.drawSpriteAW(bar,  1, pw, 0, w-nw-pw*2, 1);
+                rend.drawSpriteA(bar, 2, w-nw-pw, 0, 1);
 
+                var pw = numC.sprites[0].w;
                 rend.drawSpriteA(numC, 0, w-nw, 0, 1);
-                rend.drawSpriteAW(numC, 1, w-nw + 10, 0, this.numWidth-20,1);
-                rend.drawSpriteA(numC, 2, w - 10, 0, 1);
+                rend.drawSpriteAW(numC, 1, w-nw + pw, 0, this.numWidth-pw*2,1);
+                rend.drawSpriteA(numC, 2, w - pw, 0, 1);
                 var num = ""+mMath.padNumber(this.value.toFixed(settings.decimalPlaces),settings.digets);
                 //log(""+num,"red");
                 var extra = 0;
                 var extraX = 0;
                 for(var i = 0 ; i < this.digets ; i++){
                     if(i+extra > num.length){
-                        rend.drawSpriteA(img, 0, w-nw + 10 + 20 * i+extraX,0,1)
+                        rend.drawSpriteA(img, 0, w-nw + 10 + settings.fontWidth * i+extraX,0,1)
                         
                     }else{
                         if(num[i+extra] === "."){
-                            rend.drawSpriteA(img, 10, w-nw + 10 + 20 * i+extraX,0,1)
+                            rend.drawSpriteA(img, 10, w-nw + 10 + settings.fontWidth * i+extraX,0,1)
                             extra += 1;
                             extraX += 10;
                         }
                             
-                        rend.drawSpriteA(img, num.charCodeAt(i+extra)-48, w-nw + 10 + 20 * i + extraX,0,1)
+                        rend.drawSpriteA(img, num.charCodeAt(i+extra)-48, w-nw + 10 + settings.fontWidth * i + extraX,0,1)
                     }
                 }                
-                rend.drawBitmapA(hdl, pos-15, 0, 1);
+                rend.drawBitmapA(hdl, pos-hdl.width/2, 0, 1);
                 rend.popCTX();
               
                 this.dirty = false;
@@ -233,6 +269,20 @@
         if(shapes === undefined){
             shapes = groover.code.load("shapes2D");
         }
+        if(typeof groover !== "undefined" && groover.utils !== undefined && groover.utils.namedStyles !== undefined){
+            if(groover.utils.namedStyles.UIFont === undefined){
+                groover.utils.styles.createFontStyle("UIFont","arial",20,"white");
+            }
+            if(groover.utils.namedStyles.UISlider === undefined){
+                groover.utils.styles.createDrawStyle("UISlider","Blue","white",2,16,0);
+            }
+            if(groover.utils.namedStyles.UISliderHandle === undefined){
+                groover.utils.styles.createDrawStyle("UISliderHandle","#FC5","white",2,12,4);
+            }
+            if(groover.utils.namedStyles.UISliderDisplay === undefined){
+                groover.utils.styles.createDrawStyle("UISliderDisplay","Green","white",2,16,0);
+            }            
+        }          
     }
     return {
         create : create,

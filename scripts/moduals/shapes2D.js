@@ -191,12 +191,8 @@
             return style;
         },
         setStyle : function (ctx, style) {
-            if ( style === undefined) {
-                return;
-            }
-            for (var i in style) {
-                ctx[i] = style[i];
-            };
+            groover.utils.styles.assignDrawToContext(ctx,style);
+            ctx.rounding = style.rounding;
         },
         fillStroke : function(ctx){
             if (ctx.fillStyle !== "" && !(ctx.fillStyle === "rgba(0,0,0,0)")) {

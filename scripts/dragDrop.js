@@ -1,4 +1,4 @@
-function DropManager(dropElement, callback, types) {
+function DropManager(dropElement, callback, types,limit) {
     if (typeof dropElement === "string") {
         var s = dropElement;
         dropElement = $(dropElement);
@@ -11,6 +11,7 @@ function DropManager(dropElement, callback, types) {
     this.fileList = [];
     this.dropFileCallback = callback;
     this.types = types;
+    this.limit = limit;
 }
 DropManager.prototype.getit = function (str) {
     var type = "";
@@ -42,8 +43,6 @@ DropManager.prototype.drop = function (event) {
     this.droppedItems = [];
     var getData = false;
     dt = event.dataTransfer;
-    console.log("DropManager:dt:next line");
-    console.log(dt);
     for (var i = 0; i < dt.types.length; i++) {
         getData = false;
         if (dt.types[i] === "text/html") { // if its html there might be content in it
@@ -61,17 +60,23 @@ DropManager.prototype.drop = function (event) {
             } catch (e) {
                 dt.getData("URL"); // if cant take type file
             }
-            console.log("DropManager:dt.files:"+dt.files);
             for (var j = 0; j < dt.files.length; j++) {
-                log("DropManager:dt.files[j].type:"+dt.files[j].type);
                 for (var k = 0; k < this.types.length; k++) {
                     if (dt.files[j].type.toUpperCase() === this.types[k].toUpperCase() || this.types[k] === "*") {
-                        this.fileList.push({
-                            name : dt.files[j].name,
-                            path : dt.files[j].path,
-                            size : dt.files[j].size,
-                            type : dt.files[j].type,
-                        });
+                        var OK = true;
+                        if(this.limit !== undefined && this.limit === "first"){
+                            if(this.fileList.length > 0){
+                                OK = false;
+                            }
+                        }
+                        if(OK){
+                            this.fileList.push({
+                                name : dt.files[j].name,
+                                path : dt.files[j].path,
+                                size : dt.files[j].size,
+                                type : dt.files[j].type,
+                            });
+                        }
                         break;
                     }
                 }

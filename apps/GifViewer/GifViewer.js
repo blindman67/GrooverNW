@@ -35,6 +35,11 @@ function GifViewer(owner){
     this.playSpeed = 1;
     this.gifFrameCount = 0;
     this.fadeUI = 1;
+
+    var barStyle = groover.utils.styles.createDrawStyle(undefined,"#00F","white",1,5);
+    var checkStyle = groover.utils.styles.createDrawStyle(undefined,"#0F0","white",1,5,4);
+    var uncheckStyle = groover.utils.styles.createDrawStyle(undefined,"#F00","white",1,5,4);   
+    var fontStyle = groover.utils.styles.createDrawStyle(undefined,"arial",16,"white");
     this.log =  this.owner.ui.createUI("UILogDisplay","Log",{pos:{x:0,y:0},displayLines:12,font:"14px Lucida Console",width:256});
     this.testGroup = this.owner.ui.createUI("UIGroup","testGroup");
     this.slider = this.owner.ui.createUI(
@@ -49,12 +54,48 @@ function GifViewer(owner){
             width:-10,
             decimalPlaces:2,
             digets:3,
-            wheelStep : 0.25,
+            wheelStep : 0.25,            
             group:this.testGroup,
             ondrag : this.setPause.bind(this),
             toolTip:"Drag slider to set the time.\nUse the mouse wheel to\nstep quarter seconds." 
          }
     );
+    this.testButton = this.owner.ui.createUI(
+        "UIButton",
+        "checkBox1",
+        {
+            x: 10,
+            y: -120,
+            height : 30,
+            text : "This is a BUTTON",
+            toolTip :"If checked this will add the next frame\nwith a part fade to smooth\ngifs with low frame rates.",
+            group:this.testGroup,
+        }
+    )
+    this.checkFade = this.owner.ui.createUI(
+        "UICheckBox",
+        "checkBox1",
+        {
+            x: 10,
+            y: -52,
+            height : 30,
+            text : "Use frame fade.",
+            toolTip :"If checked this will add the next frame\nwith a part fade to smooth\ngifs with low frame rates.",
+            group:this.testGroup,
+        }
+    )
+    this.checkBoxText1 = this.owner.ui.createUI(
+        "UICheckBox",
+        "checkBox2",
+        {
+            x: 10,
+            y: -86,
+            height : 30,                        
+            text : "This is a check box:",
+            toolTip :"This is just a test,",
+            group:this.testGroup,
+        }
+    )
     var icons = [
         {
             filenames : ["icons\\speedSlowerOn.png","icons\\speedSlowerOff.png"],
@@ -121,7 +162,7 @@ function GifViewer(owner){
             
         },
     ]
-    this.iconButtons = this.owner.ui.createUI("UIIconButtons","controls",{icons:icons});
+    this.iconButtons = this.owner.ui.createUI("UIIconButtons","controls",{icons:icons,group:this.testGroup});
 }
 GifViewer.prototype.setPlay = function(){
     if(this.play){
@@ -156,6 +197,9 @@ GifViewer.prototype.lostView = function(){
     var yy = this.view.height - 40;
     this.slider.setup();//     .location.set(xx+190,yy,200); yy -= 28;
     this.iconButtons.setup();
+    this.checkFade.setup();
+    this.checkBoxText1.setup();
+    this.testButton.setup();
 
     this.newView = true;
 }
@@ -192,7 +236,7 @@ GifViewer.prototype.iconsAvaliable = function(imageGroup){
     this.candy.image.ctx.lineJoin = "round";
     var textWidth = this.candy.image.ctx.measureText(text).width;
     var scaleFont = (this.candy.image.width * 0.85)/textWidth;
-   
+    this.lastFrameIndex = 0;
     this.candy.image.ctx.font = Math.floor(120 * scaleFont)+"px Arial Black";
     this.candy.image.ctx.fillStyle = gr;
     this.candy.image.ctx.fillRect(0,0,this.candy.image.width,this.candy.image.height);
@@ -275,23 +319,25 @@ GifViewer.prototype.imageLoaded = function(imageGroup){
     this.setPlay();
 }
 GifViewer.prototype.imageDropped = function(file){
-    if(this.gifImages){
-        if(this.gifImage){
-            if(this.gifImage.image.loading){
-                var who = this;
-                if(this.gifImage.image.cancel(
-                        function(){
-                            who.loadGif(file);
-                        })
-                    ){
-                    return;
+    if(file.type === "image/gif"){
+        if(this.gifImages){
+            if(this.gifImage){
+                if(this.gifImage.image.loading){
+                    var who = this;
+                    if(this.gifImage.image.cancel(
+                            function(){
+                                who.loadGif(file);
+                            })
+                        ){
+                        return;
+                    }
                 }
+                this.gifImage.remove = true;
+                this.bitmaps.cleanImageGroup(this.gifImages);            
             }
-            this.gifImage.remove = true;
-            this.bitmaps.cleanImageGroup(this.gifImages);            
         }
+        this.loadGif(file);
     }
-    this.loadGif(file);
 }    
 GifViewer.prototype.loadGif = function(file){
 
@@ -320,7 +366,7 @@ GifViewer.prototype.createGifTimeline = function(){
         var frames = img.frames;
         var len = frames.length;
         for(var i = 0; i < len; i++){
-            var delay = frames[i].delay;
+            var delay = frames[i].delay?frames[i].delay:1;
             for(var j = 0; j < delay; j += 1){
                 this.timeline.push(i + j / delay);
             }            
@@ -410,14 +456,27 @@ GifViewer.prototype.display = function(){
                     this.slider.max = this.gifTotalTime/1000;
                     this.slider.value = ((this.playTime)/1000) % (this.gifTotalTime/1000);
                 }
-                this.render.drawBitmapGSRA(frames[Math.floor(frameIndex)].image,0,0,1,0,1);
-                
-                // only fade if playing and if not playing only if not at last frame
-                if(this.play || (!this.play && Math.floor(frameIndex+1)%frameCount > Math.floor(frameIndex))){
-                    var fade = (frameIndex%1)
-                    this.render.drawBitmapGSRA(frames[Math.floor(frameIndex+1)%frameCount].image,0,0,1,0,fade);
+                var frameBetweenCount = 0;
+                if(this.lastFrameIndex > frameIndex){
+                    frameBetweenCount = (frameIndex + frameCount)-this.lastFrameIndex;
+                }else{
+                    frameBetweenCount = frameIndex-this.lastFrameIndex;
                 }
                 
+                this.render.drawBitmapGSRA(frames[Math.floor(frameIndex)].image,0,0,1,0,1);
+                if(this.checkFade.checked){
+                    if(frameBetweenCount >= 2 && this.play){
+                        var fade = 2/(frameBetweenCount-1);
+                        for(var i = 1; i < frameBetweenCount -1; i ++){
+                            this.render.drawBitmapGSRA(frames[Math.floor(this.lastFrameIndex +i)%frameCount].image,0,0,1,0,fade);
+                        }
+                    }else{
+                        if(this.play || (!this.play && Math.floor(frameIndex+1)%frameCount > Math.floor(frameIndex))){
+                            var fade = (frameIndex%1)
+                            this.render.drawBitmapGSRA(frames[Math.floor(frameIndex+1)%frameCount].image,0,0,1,0,fade);
+                        }
+                    }
+                }
                 if(this.time < this.gifLoadTime){
                     if(img.comment !== ""){
                         info = img.comment;
@@ -432,6 +491,7 @@ GifViewer.prototype.display = function(){
                         
                     }
                 }
+                this.lastFrameIndex = frameIndex;
             }
         }
 
@@ -459,14 +519,15 @@ GifViewer.prototype.display = function(){
         if(this.gifImage === undefined){
             this.fadeUI = 0;
         }
-        this.iconButtons.location.alpha = this.fadeUI;
-        this.slider.location.alpha = this.fadeUI;
+        //this.iconButtons.location.alpha = this.fadeUI;
+        //this.slider.location.alpha = this.fadeUI;
+        this.testGroup.location.alpha = this.fadeUI;
         this.log.display();
         this.testGroup.mouse.isMouseOver();
         this.testGroup.update();
         this.testGroup.display();
-        this.iconButtons.update();
-        this.iconButtons.display();
+        //this.iconButtons.update();
+        //this.iconButtons.display();
 
         this.render.set2DStyles(this.textStyle.font,this.textStyle.fill,this.textStyle.stroke);
         this.render.drawText(info,this.view.width/2,10);

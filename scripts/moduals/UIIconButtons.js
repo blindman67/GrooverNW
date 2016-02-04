@@ -6,7 +6,10 @@
         }
         var uiReady = function () {
             ui.ready = true;
-            ui.location = ui.owner.createLocationInterface(ui, settings.group);            
+            ui.location = ui.owner.createLocationInterface(ui, settings.group);     
+            if (settings.group !== undefined) {
+                settings.group.addUI(ui.location);
+            }            
             ui.setup();
             ui.update();
 
@@ -30,6 +33,7 @@
             toolTip : "",
             ready : false,
             dirty : true,
+            holding : false,            
             icons : settings.icons,  
             mouseDownOnIcon : 0, // holds the icon id of the icon on which the mouse went down
                                  // So that the mouse can be dragged of to cancel the click
@@ -70,17 +74,23 @@
                                 m.holdMouse();
                                 if(m.hold){
                                     this.mouseDownOnIcon = icon.id;
+                                    this.holding = true;
                                 }
                             }
                             if(m.hold && m.mouse.oldB1 && !m.mouse.B1){
                                 m.mouse.oldB1 = false;
                                 m.releaseMouse();
-                                if(m.over){
+                                if(m.over && this.holding){
                                     if(typeof icon.onclick === "function"){
                                         icon.onclick(this);
                                     }
                                 }
-                            }                            
+                                this.holding = false;
+                            }  
+                            if(m.hold && !m.overReal){
+                                this.holding = false;                               
+                            }
+                            
                         }
                     }
                 }
