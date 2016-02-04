@@ -28,7 +28,7 @@
         if(settings.fontStyle === undefined){
             settings.fontStyle = groover.utils.styles.copyStyle(groover.utils.namedStyles.UIFont);
         }        
-        settings.height = settings.height===undefined?40:settings.height;        
+        settings.height = settings.height===undefined?settings.barStyle.height:settings.height;        
         settings.fontStyle.fontSize = Math.max(12,settings.height-Math.floor(settings.height/3));
         settings.fontStyle.textAlign = "center";
         settings.fontStyle.textBaseline = "middle";
@@ -59,7 +59,7 @@
                         this.canvas = this.owner.createCanvas(10,settings.height);
                         this.canvas.ctx.font = settings.fontStyle.fontSize + "px "+ settings.fontStyle.font;                        
                         var w = this.canvas.ctx.measureText(this.text).width;
-                        w += settings.height* 1.25;
+                        w += (settings.barStyle.inset + settings.barStyle.rounding)*2;
                         this.canvas = this.owner.createCanvas(w,settings.height*3);
                         this.location.set(settings.x,settings.y,undefined,settings.height);
                         
@@ -109,7 +109,8 @@
                             m.mouse.oldB1 = false;
                             m.releaseMouse();
                             if(m.over && this.holding){
-                                if(typeof this.onclik === "function"){
+                                this.clicking = false;      
+                                if(typeof this.onclick === "function"){
                                     this.onclick(this);
                                 }
                             }
@@ -196,6 +197,7 @@
             }
             if(groover.utils.namedStyles.UIButton === undefined){
                 groover.utils.styles.createDrawStyle("UIButton","Blue","white",2,6,1);
+                groover.utils.namedStyles.UIButton.height = 40;
             }
             if(groover.utils.namedStyles.UIButtonHover === undefined){
                 groover.utils.styles.createDrawStyle("UIButtonHover","green","white",2,6,0);

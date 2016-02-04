@@ -18,7 +18,7 @@
         if(settings.fontStyle === undefined){
             settings.fontStyle = groover.utils.styles.copyStyle(groover.utils.namedStyles.UIFont);
         }         
-        settings.height = settings.height===undefined?40:settings.height;
+        settings.height = settings.height===undefined?settings.barStyle.height:settings.height;
         h = settings.height;
         ww = Math.floor(h + 20);        
         settings.handleWidth = settings.handleWidth===undefined?30:settings.handleWidth;
@@ -147,13 +147,14 @@
                 var pos = Math.round(((this.value - this.min) / (this.max - this.min)) * (w-nw-this.handleWidth) + this.handleWidth/2);
 
                 var rend = this.owner.render;
+                this.canvas.ctx.setTransform(1,0,0,1,0,0);
                 this.canvas.ctx.clearRect(0,0,w,this.canvas.height);
                 rend.pushCTX(this.canvas.ctx);
+                rend.setGlobalAlpha(1);
                 var pw = bar.sprites[0].w;
                 rend.drawSpriteA(bar, 0, 0, 0, 1);
                 rend.drawSpriteAW(bar,  1, pw, 0, w-nw-pw*2, 1);
                 rend.drawSpriteA(bar, 2, w-nw-pw, 0, 1);
-
                 var pw = numC.sprites[0].w;
                 rend.drawSpriteA(numC, 0, w-nw, 0, 1);
                 rend.drawSpriteAW(numC, 1, w-nw + pw, 0, this.numWidth-pw*2,1);
@@ -274,7 +275,8 @@
                 groover.utils.styles.createFontStyle("UIFont","arial",20,"white");
             }
             if(groover.utils.namedStyles.UISlider === undefined){
-                groover.utils.styles.createDrawStyle("UISlider","Blue","white",2,16,0);
+                groover.utils.styles.createDrawStyle("UISlider","rgba(128,128,128,0.25)","white",1,3,13);
+                groover.utils.namedStyles.UISlider.height = 40;
             }
             if(groover.utils.namedStyles.UISliderHandle === undefined){
                 groover.utils.styles.createDrawStyle("UISliderHandle","#FC5","white",2,12,4);

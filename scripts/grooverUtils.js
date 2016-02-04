@@ -386,6 +386,35 @@ groover.utils.files = {
         }
         filename = filePath.dir + this.OSDelimiter + filePath.name + filePath.ext;
     },
+    getFilesOfTypeInDir :function (dir,types){
+        if(typeof dir !== "string"){
+            if(dir.path !== undefined){
+                dir = dir.path;
+            }
+        }
+        var filePath = path.parse(dir);
+        if(filePath.dir === ""){
+            filePath.dir = this.currentDirectory;
+        }
+        types = [].concat(types);
+        return fileSystem.readdirSync(filePath.dir).filter(function(name){
+            var result = false;
+            name = path.parse(name);
+            
+            types.forEach(function(type){
+                if(name.ext.indexOf(type) > -1){
+                    result = true;
+                }
+            });
+            return result;
+        }).map(function(name){
+            name = path.parse(name);
+            return filePath.dir + groover.utils.files.OSDelimiter + name.name + name.ext;
+        });
+        
+        
+        
+    },
     doesFileExist : function (filename){
         filename = path.parse(filename);
         if(filename.dir === ""){

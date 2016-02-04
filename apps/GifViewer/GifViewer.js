@@ -35,6 +35,7 @@ function GifViewer(owner){
     this.playSpeed = 1;
     this.gifFrameCount = 0;
     this.fadeUI = 1;
+    this.fileList = [];
 
     var barStyle = groover.utils.styles.createDrawStyle(undefined,"#00F","white",1,5);
     var checkStyle = groover.utils.styles.createDrawStyle(undefined,"#0F0","white",1,5,4);
@@ -60,18 +61,60 @@ function GifViewer(owner){
             toolTip:"Drag slider to set the time.\nUse the mouse wheel to\nstep quarter seconds." 
          }
     );
-    this.testButton = this.owner.ui.createUI(
+    var by = -86;
+    var bys = 34;
+    this.fitView = this.owner.ui.createUI(
         "UIButton",
-        "checkBox1",
+        "fitView",
         {
             x: 10,
-            y: -120,
+            y: by,
             height : 30,
-            text : "This is a BUTTON",
-            toolTip :"If checked this will add the next frame\nwith a part fade to smooth\ngifs with low frame rates.",
+            text : "Fit",
+            toolTip :"Resets the view to fit within the window.",
+            onclick : (function(){
+                if(this.gifImage !== undefined){
+                    var img = this.gifImage.image.frames[0].image;
+                    this.transform.fitView(-img.width/2,-img.height/2,img.width/2,img.height/2,"fit");
+                }                
+            }).bind(this),
             group:this.testGroup,
         }
     )
+    by-= bys;
+    this.nextFile = this.owner.ui.createUI(
+        "UIButton",
+        "nextFile",
+        {
+            x: 10,
+            y: by,
+            height : 30,
+            text : "Next",
+            toolTip :"Loads the next gif found in the\nin the current directory.",
+            onclick : (function(){
+                this.currentFile = (this.currentFile  + 1)%this.fileList.length;
+                this.loadGif({path:this.fileList[this.currentFile]});
+            }).bind(this),
+            group:this.testGroup,
+        }
+    )
+    by-= bys;    
+    this.buttons = [];
+   /* for(var i = 0; i < 10; i++){
+        this.buttons.push(this.owner.ui.createUI(
+            "UIButton",
+            "checkBox1",
+            {
+                x: 10,
+                y: by,
+                height : 30,
+                text : "This is a BUTTON",
+                toolTip :"If checked this will add the next frame\nwith a part fade to smooth\ngifs with low frame rates.",
+                group:this.testGroup,
+            }
+        ))
+        by -= bys;
+    }*/
     this.checkFade = this.owner.ui.createUI(
         "UICheckBox",
         "checkBox1",
@@ -84,18 +127,7 @@ function GifViewer(owner){
             group:this.testGroup,
         }
     )
-    this.checkBoxText1 = this.owner.ui.createUI(
-        "UICheckBox",
-        "checkBox2",
-        {
-            x: 10,
-            y: -86,
-            height : 30,                        
-            text : "This is a check box:",
-            toolTip :"This is just a test,",
-            group:this.testGroup,
-        }
-    )
+
     var icons = [
         {
             filenames : ["icons\\speedSlowerOn.png","icons\\speedSlowerOff.png"],
@@ -163,6 +195,7 @@ function GifViewer(owner){
         },
     ]
     this.iconButtons = this.owner.ui.createUI("UIIconButtons","controls",{icons:icons,group:this.testGroup});
+    groover.utils.files.saveJson("UIStyle",groover.utils.namedStyles);
 }
 GifViewer.prototype.setPlay = function(){
     if(this.play){
@@ -198,8 +231,11 @@ GifViewer.prototype.lostView = function(){
     this.slider.setup();//     .location.set(xx+190,yy,200); yy -= 28;
     this.iconButtons.setup();
     this.checkFade.setup();
-    this.checkBoxText1.setup();
-    this.testButton.setup();
+    this.fitView.setup();
+    this.nextFile.setup();
+    for(var i = 0; i < this.buttons.length; i++){
+        this.buttons[i].setup();
+    }        
 
     this.newView = true;
 }
@@ -319,6 +355,17 @@ GifViewer.prototype.imageLoaded = function(imageGroup){
     this.setPlay();
 }
 GifViewer.prototype.imageDropped = function(file){
+    this.loadGif(file);
+    this.fileList = groover.utils.files.getFilesOfTypeInDir(file,".gif");
+    this.currentFile = 0;
+    for(var i = 0; i < this.fileList.length; i++){
+        if(this.fileList[i].indexOf(file.path) > -1){
+            this.currentFile = i;
+            break;
+        }
+    }
+}    
+GifViewer.prototype.loadGif = function(file){
     if(file.type === "image/gif"){
         if(this.gifImages){
             if(this.gifImage){
@@ -336,11 +383,7 @@ GifViewer.prototype.imageDropped = function(file){
                 this.bitmaps.cleanImageGroup(this.gifImages);            
             }
         }
-        this.loadGif(file);
     }
-}    
-GifViewer.prototype.loadGif = function(file){
-
     log("Loading Image '"+file.path+"'","#0F0");
     this.gifImages = this.bitmaps.startLoad("gifImages",this.imageLoaded.bind(this));
     this.gifImage = this.bitmaps.load("gifImages",file.path);
@@ -464,6 +507,7 @@ GifViewer.prototype.display = function(){
                 }
                 
                 this.render.drawBitmapGSRA(frames[Math.floor(frameIndex)].image,0,0,1,0,1);
+
                 if(this.checkFade.checked){
                     if(frameBetweenCount >= 2 && this.play){
                         var fade = 2/(frameBetweenCount-1);
@@ -497,10 +541,10 @@ GifViewer.prototype.display = function(){
 
 
 
-        if(this.time - this.MK.lastEventTime > 3*1000){
+        if(this.time - this.MK.lastEventTime > 3*1000 || !this.MK.over){
             this.MK.requestCursor("none",0);
             if(this.fadeUI > 0){
-                this.fadeUI -= 0.02;
+                this.fadeUI -= 0.1;
                 if(this.fadeUI < 0){
                     this.fadeUI = 0;
                 }
@@ -509,7 +553,7 @@ GifViewer.prototype.display = function(){
         }else{
             this.MK.releaseCursor(0);
             if(this.fadeUI < 1){
-                this.fadeUI += 0.02;
+                this.fadeUI += 0.1;
                 if(this.fadeUI > 1){
                     this.fadeUI = 1;
                 }

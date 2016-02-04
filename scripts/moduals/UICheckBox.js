@@ -28,7 +28,7 @@
         if(settings.fontStyle === undefined){
             settings.fontStyle = groover.utils.styles.copyStyle(groover.utils.namedStyles.UIFont);
         }        
-        settings.height = settings.height===undefined?40:settings.height;        
+        settings.height = settings.height===undefined?settings.barStyle.height:settings.height;        
         settings.fontStyle.fontSize = Math.max(12,settings.height-Math.floor(settings.height/2));
         settings.fontStyle.textAlign = "left";
         settings.fontStyle.textBaseline = "middle";
@@ -185,7 +185,9 @@
                 groover.utils.styles.createFontStyle("UIFont","arial",20,"white");
             }
             if(groover.utils.namedStyles.UICheckBox === undefined){
+                
                 groover.utils.styles.createDrawStyle("UICheckBox","Blue","white",2,6,0);
+                groover.utils.namedStyles.UICheckBox.height = 30;
             }
             if(groover.utils.namedStyles.UICheckBoxChecked === undefined){
                 groover.utils.styles.createDrawStyle("UICheckBoxChecked","RED","white",2,6,3);

@@ -80,7 +80,7 @@
                             if(m.hold && m.mouse.oldB1 && !m.mouse.B1){
                                 m.mouse.oldB1 = false;
                                 m.releaseMouse();
-                                if(m.over && this.holding){
+                                if(m.over && this.holding){                                    
                                     if(typeof icon.onclick === "function"){
                                         icon.onclick(this);
                                     }

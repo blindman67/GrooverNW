@@ -186,21 +186,31 @@ MouseKeyboard.prototype.mouseEvent = function(e){
     m.shift = e.shiftKey;
     m.ctrl = e.ctrlKey;
     m.lastEventTime = new Date().valueOf();
-    e.preventDefault();    
     if (t === "mousemove") { 
+        e.preventDefault();    
+        // this is a fix because I can not find out why not all mouse out events are firing
+        if(e.screenX === 0 && e.screenY === 0){
+            m.over = false;
+        }else{
+            m.over = true;
+        }
+            
         return;
-    }else if (t === "mousedown") { 
+    }
+    if (t === "mousedown") { 
         m.oldBR = m.BR;
         m.BR |= m.bm[e.which-1];
         bn = m.butNames[e.which-1]
         m["old"+bn] = m[bn];
         m[bn] = true;
+        e.preventDefault();    
     } else if (t === "mouseup") { 
         m.oldBR = m.BR;
         m.BR &= m.bm[e.which + 2];
         bn = m.butNames[e.which-1]
         m["old"+bn] = m[bn];
         m[bn] = false;
+        e.preventDefault();    
     } else if (t === "mouseout") { 
         m.oldBR = m.BR;
         m.BR = 0;
@@ -219,9 +229,12 @@ MouseKeyboard.prototype.mouseEvent = function(e){
         m.over = false;
     } else if (t === "mouseover") { 
         m.over = true;
+        e.preventDefault();    
     } else if (t === "mousewheel") { 
         m.w = e.wheelDelta;
+        e.preventDefault();    
     } else if (t === "DOMMouseScroll") { 
         m.w = -e.detail;
+        e.preventDefault();    
     }
 }

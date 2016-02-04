@@ -95,6 +95,9 @@ function Render(owner){
     this.blendLighten = function(){
         ctx.globalCompositeOperation = "lighter"; 					
     }
+    this.blendDarken = function(){
+        ctx.globalCompositeOperation = "multiply"; 					
+    }
     this.blendMode = function(type){
         ctx.globalCompositeOperation = sources[type]; 					
     }
