@@ -11,8 +11,9 @@ It is intended that the GrooverNW is a runtime framework and does not requier a 
 
 ##Current Status.
 
-Still working on UI. The anim is for very complex UIs that do not drop the frame rate but still provide rich animated functionality,
-The UI is just working, but still laking in many areas.
+Still working on UI. 
+
+Having a rethink of how to handle views. I was going to have all view associated with a canvas but this does not always hold true as I have found the need for a view without a canvas. I also managed to forget that a view also has a top left..Will also rewrite the UI location interface to take a view as a argument
 
 
 ## Files
