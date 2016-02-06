@@ -552,9 +552,17 @@ groover.utils.styles = {
         
     },
     createDrawStyle : function (name, col, lineCol, lineWidth, rounding, inset) {
-        var style = {};
+        var style;
+        if(typeof name === "string"){
+             style = groover.utils.namedStyles[name];
+             if(style === undefined){
+                  groover.utils.namedStyles[name] = style = {};
+             }
+        }else{
+            style = {};
+        }
         for (var i = 0; i < this.attributes.length; i++) {
-            style[this.attributes[i]] = groover.utils.namedStyles.DEFAULT[this.attributes[i]];
+            style[this.attributes[i]] = style[this.attributes[i]] === undefined ? groover.utils.namedStyles.DEFAULT[this.attributes[i]] : style[this.attributes[i]];
         }
         style.fillStyle     = col === null || col === undefined             ? style.fillStyle   : col;
         style.strokeStyle   = lineCol === null || lineCol === undefined     ? style.strokeStyle : lineCol;
@@ -562,26 +570,28 @@ groover.utils.styles = {
         style.rounding      = rounding === null || rounding === undefined   ? style.rounding    : rounding;
         style.inset         = inset === null || inset === undefined         ? style.inset       : inset;
         
-        if(typeof name === "string"){
-            groover.utils.namedStyles[name] = style;
-        }
         return style;
         
     },
     createFontStyle : function (name, font, fontSize, fontColour, textAlign, textBaseline ) {
-        var style = {};
+        var style;
+        if(typeof name === "string"){
+             style = groover.utils.namedStyles[name];
+             if(style === undefined){
+                  groover.utils.namedStyles[name] = style = {};
+             }
+        }else{
+            style = {};
+        }
         for (var i = 0; i < this.attributes.length; i++) {
-            style[this.attributes[i]] = groover.utils.namedStyles.DEFAULT[this.attributes[i]];
+            style[this.attributes[i]] = style[this.attributes[i]] === undefined ? groover.utils.namedStyles.DEFAULT[this.attributes[i]] : style[this.attributes[i]];
         }
         style.font = font === null || font === undefined ? style.font : font;
         style.fontSize = fontSize === null || fontSize === undefined ? style.fontSize : fontSize;
         style.fontColour = fontColour === null || fontColour === undefined ? style.fontColour : fontColour;
         style.textAlign = textAlign === null || textAlign === undefined ? style.textAlign : textAlign;
         style.textBaseline = textBaseline === null || textBaseline === undefined ? style.textBaseline : textBaseline;
-        
-        if(typeof name === "string"){
-            groover.utils.namedStyles[name] = style;
-        }
+
         return style;
         
     },    

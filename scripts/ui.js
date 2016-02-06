@@ -32,7 +32,7 @@ UI.prototype.update = function(){
 }
 UI.prototype.display = function(){
     if(this.toolTip !== undefined && this.toolTip.ready){
-        if(!this.toolTip.owner.over || this.MK.BR !== 0 || this.MK.w !== 0){
+        if(!this.toolTip.owner.over || this.MK.BR !== 0 || this.MK.w !== 0 || this.toolTip.owner.owner.location.alpha === 0){
             this.toolTip.free();
 
         }else{
@@ -333,6 +333,7 @@ UI.prototype.setupToolTip = function(){
                     }
                     a = mMath.easeInOut(this.timer,2);
                 }
+                a = a * this.owner.owner.location.alpha;
                 this.render.drawBitmapPart(this.canvas,x,y,0,0,this.width,this.height,a);
             }
         }, 
@@ -464,11 +465,12 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
         inactive : false,
         overCount : 0,
         deactivate : function(){
-            if(this.mouse.mousePrivate !== this.id){
-                this.inactive = true;
-                if(this.owner.location !== undefined){
-                    this.owner.location.alpha = 0.5;
-                }
+            if(this.mouse.mousePrivate === this.id){
+                this.mouse.mousePrivate = 0
+            }
+            this.inactive = true;
+            if(this.owner.location !== undefined){
+                this.owner.location.alpha = 0.5;
             }
         },
         activate : function(){
@@ -635,7 +637,6 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
         },      
     }
 }
-
 UI.prototype.UIGroup = function(name,settings,owner){
     var UI = this;
     if(settings === undefined){
@@ -650,6 +651,7 @@ UI.prototype.UIGroup = function(name,settings,owner){
         items : [],
         updateList : [],
         displayList : [],
+        setupList : [],
         addUI : function(UILocation){
             this.items.push(UILocation);
             this.recaculateBounds();
@@ -658,6 +660,9 @@ UI.prototype.UIGroup = function(name,settings,owner){
             }
             if(UILocation.owner.update !== undefined){
                 this.updateList[this.updateList.length] = UILocation.owner;
+            }
+            if(UILocation.owner.setup !== undefined){
+                this.setupList[this.setupList.length] = UILocation.owner;
             }
         },
         recaculateBounds : function(){
@@ -679,9 +684,15 @@ UI.prototype.UIGroup = function(name,settings,owner){
         },
 
         setup : function(){  
+            var i, len;
             if(this.settings.ownCanvas){
                  this.canvas = UI.createCanvas(this.location.w,this.location.h)
+                 this.dirty = true;
             }
+            len = this.setupList.length;
+            for(i = 0; i < len; i++){
+                this.setupList[i].setup();
+            }                
             
         },
         redraw : function(){

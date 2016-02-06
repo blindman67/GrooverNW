@@ -6,8 +6,10 @@ function View(owner){
     this.ctx;  // main display
     this.views = [];
     this.render;
+    this.namedViews = {};
     this.refreshed = true;
     this.ready = true;
+    this.mainViewName = "main";
     log("View manager ready");
 }
 View.prototype.refreshedDone = function(){
@@ -19,13 +21,44 @@ View.prototype.refresh = function(){
     this.ctx = this.owner.canvas.ctx;
     this.width = this.owner.canvas.width;
     this.height = this.owner.canvas.height;
+    this.addNamedView(this.mainViewName,this.canvas);
     this.render = this.owner.render;
     this.refreshed = true;
     if(this.owner.mouseKeyboard !== undefined && this.owner.mouseKeyboard.viewUpdated !== undefined){
         this.owner.mouseKeyboard.viewUpdated();
     }
-    this.render.viewUpdated();
-    
+    this.render.viewUpdated();    
+}
+View.prototype.setDefault = function(){
+    if(this.owner.canvas !== undefined){
+        this.canvas = this.owner.canvas;
+        this.ctx = this.canvas.ctx;
+        this.width = this.canvas.width;
+        this.height = this.canvas.height;
+    }else{
+        this.width = window.innerWidth;    
+        this.height = window.innerHeight;    
+        
+    }
+}
+View.prototype.addNamedView = function(name,canvas){
+    this.namedViews[name] = {
+        canvas : canvas,
+        ctx : canvas.ctx,
+        width : canvas.width,
+        height : canvas.height,
+    };
+    return this.namedViews[name];
+}
+View.prototype.setViewByName = function(name){
+    var view = this.namedViews[name];
+    if(view === undefined){
+        return;
+    }
+    this.canvas = view.canvas;
+    this.ctx = view.ctx;
+    this.width = view.width;
+    this.height = view.height;
 }
 View.prototype.create = function(width,height){
     var frame = {};

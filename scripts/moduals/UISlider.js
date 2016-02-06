@@ -43,8 +43,18 @@
        
         if(!handle.drawn){
             lw = settings.handleStyle.lineWidth + settings.handleStyle.inset ;
-            shapes.drawRectangle(handle.image,lw,lw,settings.handleWidth-lw*2,h-lw*2,settings.handleStyle);
-            handle.drawn = true;
+            ww = (settings.handleStyle.rounding + settings.handleStyle.inset)*2+10;
+            settings.minHandleWidth = ww-5;
+            shapes.drawRectangle(handle.image,lw,lw,ww-lw*2,h-lw*2,settings.handleStyle );
+            ww = (settings.handleStyle.rounding + settings.handleStyle.inset);
+            handle.image.sprites = [];
+            handle.image.sprites.push({x:0,y:0,w:ww,h:h});
+            handle.image.sprites.push({x:ww,y:0,w:handle.image.width-ww*2,h:h});
+            handle.image.sprites.push({x:handle.image.width-ww,y:0,w:ww,h:h});
+            handle.drawn = true;            
+            //lw = settings.handleStyle.lineWidth + settings.handleStyle.inset ;
+            //shapes.drawRectangle(handle.image,lw,lw,settings.handleWidth-lw*2,h-lw*2,settings.handleStyle);
+            //handle.drawn = true;
         }
         if(!bar.drawn){
             lw = settings.barStyle.lineWidth + settings.barStyle.inset ;
@@ -108,6 +118,8 @@
             settings : settings,
             min : settings.min,
             max : settings.max,
+            viewName : settings.viewName === undefined?UI.owner.view.mainViewName:settings.viewName,
+            handleSpan : settings.handleSpan !== undefined ? settings.handleSpan: 1,
             value : settings.value,
             oldValue : null,
             dirty : true,
@@ -124,7 +136,19 @@
             numWidth : (settings.digets + 1) * settings.fontWidth,
             handleWidth : settings.handleWidth,
             location : undefined, // stub till ready to set location
+            setHandleWidth : function(value){
+                this.handleSpan = value;
+                value = Math.min(1,value/(this.max-this.min));
+                this.handleWidth = Math.max(settings.minHandleWidth,value * (this.canvas.width - this.numWidth));
+                this.dirty = true;
+            },
+            setMinMax : function(min,max){
+                this.min = min;
+                this.max = max;
+                this.setHandleWidth(this.handleSpan);
+            }, 
             setup : function () {
+                UI.owner.view.setViewByName(this.viewName);
                 this.numWidth = (settings.digets + 1) * settings.fontWidth;
                 if(settings.decimalPlaces > 0){
                     this.numWidth += settings.decimalPlaces * settings.fontWidth + Math.floor(settings.fontWidth*0.5);
@@ -134,8 +158,10 @@
                 if(this.canvas === undefined || this.canvas.width !== this.location.w || this.canvas.height !== this.location.h){
                     this.canvas = this.owner.createCanvas(this.location.w,this.location.h);
                 }
-                this.handleWidth = this.handle.image.width;
+                this.setHandleWidth(this.handleSpan);
+                //this.handleWidth = this.handle.image.width;
                 this.dirty = true;  // flag as dirty so it is redrawn
+                UI.owner.view.setDefault();
             },
             redraw : function(){
                 var bar = this.bar.image;
@@ -176,8 +202,13 @@
                             
                         rend.drawSpriteA(img, num.charCodeAt(i+extra)-48, w-nw + 10 + settings.fontWidth * i + extraX,0,1)
                     }
-                }                
-                rend.drawBitmapA(hdl, pos-hdl.width/2, 0, 1);
+                }            
+                var pw = hdl.sprites[0].w;
+            
+                rend.drawSpriteA(hdl,0, pos-this.handleWidth/2,0, 1);
+                rend.drawSpriteAW(hdl,1, pos-this.handleWidth/2+pw, 0,this.handleWidth-pw*2, 1);
+                rend.drawSpriteA(hdl,2, pos+this.handleWidth/2-pw, 0, 1);
+                //rend.drawBitmapA(hdl, pos-hdl.width/2, 0, 1);
                 rend.popCTX();
               
                 this.dirty = false;
@@ -209,7 +240,7 @@
                                 
                             }
                         }else{
-                            if(m.x > pos- this.handle.image.width/2 && m.x <= pos + this.handle.image.width/2){
+                            if(m.x > pos- this.handleWidth/2 && m.x <= pos + this.handleWidth/2){
                                 m.mouse.requestCursor("ew-resize", m.id);
                                 if(m.mouse.B1){
                                     m.holdMouse();

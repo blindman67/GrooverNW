@@ -41,6 +41,11 @@ function GifViewer(owner){
     var checkStyle = groover.utils.styles.createDrawStyle(undefined,"#0F0","white",1,5,4);
     var uncheckStyle = groover.utils.styles.createDrawStyle(undefined,"#F00","white",1,5,4);   
     var fontStyle = groover.utils.styles.createDrawStyle(undefined,"arial",16,"white");
+    
+    this.alert = this.owner.ui.createUI("UIAlert","myAlert",{});
+  //  this.alert.setStyles(barStyle,checkStyle);
+    
+    
     this.log =  this.owner.ui.createUI("UILogDisplay","Log",{pos:{x:0,y:0},displayLines:12,font:"14px Lucida Console",width:256});
     this.testGroup = this.owner.ui.createUI("UIGroup","testGroup");
     this.slider = this.owner.ui.createUI(
@@ -50,6 +55,7 @@ function GifViewer(owner){
             min:0,
             max:100,
             value:0,
+            handleSpan : 0.01,
             x:140,
             y:-8,
             width:-10,
@@ -228,14 +234,7 @@ GifViewer.prototype.lostView = function(){
     this.render = this.owner.render;  
     var xx = 10;
     var yy = this.view.height - 40;
-    this.slider.setup();//     .location.set(xx+190,yy,200); yy -= 28;
-    this.iconButtons.setup();
-    this.checkFade.setup();
-    this.fitView.setup();
-    this.nextFile.setup();
-    for(var i = 0; i < this.buttons.length; i++){
-        this.buttons[i].setup();
-    }        
+    this.testGroup.setup();  // redraw UIs
 
     this.newView = true;
 }
@@ -290,6 +289,9 @@ GifViewer.prototype.iconsAvaliable = function(imageGroup){
         this.candy.image.ctx.fillStyle = gr;
         this.candy.image.ctx.fillRect(i*8,i*8,this.candy.image.width-i*16,this.candy.image.height-i*16);   
     }
+    
+    this.images.background = this.bitmaps.create("icons",Math.floor(this.view.width/10),Math.floor(this.view.height/10),"background");
+    this.images.background.image.ctx.drawImage(this.candy.image,0,0,Math.floor(this.view.width/10),Math.floor(this.view.height/10));
     r = mMath.randI(150,260);
     g = mMath.randI(150,260);
     b = mMath.randI(150,260);
@@ -436,7 +438,10 @@ GifViewer.prototype.display = function(){
     var frameTime,img,frames,len,frameCount,frameIndex;    
     var info = "No frames loaded.";
     if(this.ready){
-
+        if(!this.alert.active){
+            this.alert.active = true;
+            this.alert.alert("The time is:\n"+this.time);
+        }
         this.render.drawBackground(this.images.background.image);
         if(groover.draggedOver){
             if(this.fadeOut === undefined){
@@ -474,14 +479,18 @@ GifViewer.prototype.display = function(){
             if(this.gifImage.ready){
                 if(!img.complete){
                     this.createGifTimeline();
-                    this.slider.max = this.gifTotalTime/1000;
+                    this.slider.handleSpan = (this.gifTotalTime/1000)/len;
+                    this.slider.setMinMax(0,this.gifTotalTime/1000);
+                    //this.slider.max = this.gifTotalTime/1000;
                     this.done = false;
                     
                 }else{
                     if(!this.done){
                         this.done = true;
                         this.createGifTimeline();
-                        this.slider.max = this.gifTotalTime/1000;
+                        this.slider.handleSpan = (this.gifTotalTime/1000)/len;
+                        this.slider.setMinMax(0,this.gifTotalTime/1000);
+                        //this.slider.max = this.gifTotalTime/1000;
                     }
                 }
                 
@@ -567,15 +576,21 @@ GifViewer.prototype.display = function(){
         //this.slider.location.alpha = this.fadeUI;
         this.testGroup.location.alpha = this.fadeUI;
         this.log.display();
-        this.testGroup.mouse.isMouseOver();
-        this.testGroup.update();
-        this.testGroup.display();
+        if(this.fadeUI > 0){
+            this.testGroup.mouse.isMouseOver();
+            this.testGroup.update();
+            this.testGroup.display();
+        }
         //this.iconButtons.update();
         //this.iconButtons.display();
 
         this.render.set2DStyles(this.textStyle.font,this.textStyle.fill,this.textStyle.stroke);
         this.render.drawText(info,this.view.width/2,10);
 
+    }
+    if(this.alert.active){
+        this.alert.update();
+        this.alert.display();
     }
 }
 

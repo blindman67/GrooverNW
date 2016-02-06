@@ -45,6 +45,7 @@
             canvas : undefined,
             settings : settings,
             hoverVal : 1,
+            viewName : settings.viewName === undefined?UI.owner.view.mainViewName:settings.viewName,
             hover : true,
             clicking : false,
             clickingVal : 1,
@@ -52,6 +53,7 @@
             onclick :settings.onclick,
             location : undefined, 
             setup : function () {
+                UI.owner.view.setViewByName(this.viewName);
                 if(this.canvas !== undefined){
                         this.location.set(settings.x,settings.y,undefined,settings.height);
                 }else{
@@ -68,6 +70,7 @@
                         this.location.set(settings.x,settings.y,settings.width,settings.height);
                     }
                 }
+                UI.owner.view.setDefault();
 
             },            
             redraw : function(){
@@ -191,21 +194,19 @@
         if(shapes === undefined){
             shapes = groover.code.load("shapes2D");
         }
-        if(typeof groover !== "undefined" && groover.utils !== undefined && groover.utils.namedStyles !== undefined){
-            if(groover.utils.namedStyles.UIFont === undefined){
-                groover.utils.styles.createFontStyle("UIFont","arial",20,"white");
-            }
-            if(groover.utils.namedStyles.UIButton === undefined){
-                groover.utils.styles.createDrawStyle("UIButton","Blue","white",2,6,1);
-                groover.utils.namedStyles.UIButton.height = 40;
-            }
-            if(groover.utils.namedStyles.UIButtonHover === undefined){
-                groover.utils.styles.createDrawStyle("UIButtonHover","green","white",2,6,0);
-            }
-            if(groover.utils.namedStyles.UIButtonClick === undefined){
-                groover.utils.styles.createDrawStyle("UIButtonClick","RED","white",2,6,0);
-            }            
-        }        
+        if(groover.utils.namedStyles.UIFont === undefined){
+            groover.utils.styles.createFontStyle("UIFont","arial",20,"white");
+        }
+        if(groover.utils.namedStyles.UIButton === undefined){
+            groover.utils.styles.createDrawStyle("UIButton","Blue","white",2,6,1);
+            groover.utils.namedStyles.UIButton.height = 40;
+        }
+        if(groover.utils.namedStyles.UIButtonHover === undefined){
+            groover.utils.styles.createDrawStyle("UIButtonHover","green","white",2,6,0);
+        }
+        if(groover.utils.namedStyles.UIButtonClick === undefined){
+            groover.utils.styles.createDrawStyle("UIButtonClick","RED","white",2,6,0);
+        }            
     }    
     return {
         create : create,
