@@ -1,4 +1,14 @@
 "use strict";
+// This is the main entry point to all that needs to happen.
+
+// To start the requiered application add the app directory name relative to the starting directory
+// in the starting arguments. 
+// eg
+// C:\nw\nw.exe D:\Marks\DEV\GrooverNW app=GifViewer
+// second argument is the groover directory, and application is GifViewer
+// See the development directory for detials.
+
+
 
 if(DEBUG){
     groover.win.showDevTools();
@@ -15,7 +25,6 @@ if(DEBUG){
             return;
             failedStartup = true;
         }else{
-
             if(groover.application === undefined){
                 groover.loader.showInfo("<h1>Application parsed but did not register its self.</h1>Groover found and loaded the applicarion named '<b>"+app+"</b>'<br>but the app did not register its self as the named variable '<b>groover.application</b>'</br>I can not run what I do not know..<br>");
                 return;
@@ -31,8 +40,6 @@ if(DEBUG){
                 groover.application.prototype.display = function(){};
             }
         }      
-
-        
         if(failedStartup){
             nw.App.quit();
         }
@@ -44,7 +51,6 @@ if(DEBUG){
         moduals.push(this.render = new Render(this));
         moduals.push(this.ui = new UI(this));
         moduals.push(this.app = new groover.application(this));
-        //groover.win.maximize();
         window.addEventListener("resize",this.resize.bind(this));
         var checkModuals = (function(){
             var i;
@@ -73,7 +79,6 @@ if(DEBUG){
         groover.busy = true;
         groover.busyMessage = "just testing";
         setTimeout(function(){groover.busy = false},1000);
-        
         groover.loader.clearSplash();
         setTimeout(this.resize.bind(this),100);
     }
@@ -95,7 +100,6 @@ if(DEBUG){
                 this.app.imageDropped(file);
             }
         }
-        //groover.dialogs.imageLoader(file);
     }
     window.addEventListener("load",function(){
         var app;

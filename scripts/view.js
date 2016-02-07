@@ -3,6 +3,8 @@ function View(owner){
     this.owner = owner;
     this.width = window.innerWidth;    
     this.height = window.innerHeight;    
+    this.top = 0;
+    this.left = 0;
     this.ctx;  // main display
     this.views = [];
     this.render;
@@ -10,6 +12,9 @@ function View(owner){
     this.refreshed = true;
     this.ready = true;
     this.mainViewName = "main";
+    this.currentViewName = this.mainViewName;
+    this.addNamedView(this.mainViewName,this.canvas,this.top,this.left);
+    this.viewNameStack = [];
     log("View manager ready");
 }
 View.prototype.refreshedDone = function(){
@@ -21,7 +26,9 @@ View.prototype.refresh = function(){
     this.ctx = this.owner.canvas.ctx;
     this.width = this.owner.canvas.width;
     this.height = this.owner.canvas.height;
-    this.addNamedView(this.mainViewName,this.canvas);
+    this.top = 0;
+    this.left = 0;
+    this.addNamedView(this.mainViewName,this.canvas,this.top,this.left);
     this.render = this.owner.render;
     this.refreshed = true;
     if(this.owner.mouseKeyboard !== undefined && this.owner.mouseKeyboard.viewUpdated !== undefined){
@@ -35,19 +42,37 @@ View.prototype.setDefault = function(){
         this.ctx = this.canvas.ctx;
         this.width = this.canvas.width;
         this.height = this.canvas.height;
+        this.top = 0;
+        this.left = 0;
     }else{
         this.width = window.innerWidth;    
         this.height = window.innerHeight;    
-        
+        this.top = 0;
+        this.left = 0;
     }
+    this.currentViewName = this.mainViewName;
+    
 }
-View.prototype.addNamedView = function(name,canvas){
-    this.namedViews[name] = {
-        canvas : canvas,
-        ctx : canvas.ctx,
-        width : canvas.width,
-        height : canvas.height,
-    };
+View.prototype.addNamedView = function(name,canvas,top,left){
+    if(canvas === undefined){
+        this.namedViews[name] = {
+            canvas : canvas,
+            ctx : undefined,
+            width : this.width,
+            height : this.height,
+            top : top,
+            left : left,
+        };
+    }else{
+        this.namedViews[name] = {
+            canvas : canvas,
+            ctx : canvas.ctx,
+            width : canvas.width,
+            height : canvas.height,
+            top : top,
+            left : left,
+        };
+    }
     return this.namedViews[name];
 }
 View.prototype.setViewByName = function(name){
@@ -59,7 +84,30 @@ View.prototype.setViewByName = function(name){
     this.ctx = view.ctx;
     this.width = view.width;
     this.height = view.height;
+    this.top = view.top;
+    this.left = view.left;
+    this.currentViewName = name;
 }
+View.prototype.popView = function(){
+    if(this.viewNameStack.length > 0){
+        this.setViewByName(this.viewNameStack.pop());
+    }
+}
+View.prototype.pushViewByName = function(name){
+    var view = this.namedViews[name];
+    if(view === undefined){
+        return;
+    }
+    this.viewNameStack.push(this.currentViewName);
+    this.canvas = view.canvas;
+    this.ctx = view.ctx;
+    this.width = view.width;
+    this.height = view.height;
+    this.top = view.top;
+    this.left = view.left;
+    this.currentViewName = name;
+}
+// depreciated function;
 View.prototype.create = function(width,height){
     var frame = {};
     frame.image = $C("canvas");

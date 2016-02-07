@@ -118,7 +118,6 @@
             settings : settings,
             min : settings.min,
             max : settings.max,
-            viewName : settings.viewName === undefined?UI.owner.view.mainViewName:settings.viewName,
             handleSpan : settings.handleSpan !== undefined ? settings.handleSpan: 1,
             value : settings.value,
             oldValue : null,
@@ -148,7 +147,6 @@
                 this.setHandleWidth(this.handleSpan);
             }, 
             setup : function () {
-                UI.owner.view.setViewByName(this.viewName);
                 this.numWidth = (settings.digets + 1) * settings.fontWidth;
                 if(settings.decimalPlaces > 0){
                     this.numWidth += settings.decimalPlaces * settings.fontWidth + Math.floor(settings.fontWidth*0.5);
@@ -161,7 +159,6 @@
                 this.setHandleWidth(this.handleSpan);
                 //this.handleWidth = this.handle.image.width;
                 this.dirty = true;  // flag as dirty so it is redrawn
-                UI.owner.view.setDefault();
             },
             redraw : function(){
                 var bar = this.bar.image;

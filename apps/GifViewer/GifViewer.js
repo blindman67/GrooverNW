@@ -42,9 +42,21 @@ function GifViewer(owner){
     var uncheckStyle = groover.utils.styles.createDrawStyle(undefined,"#F00","white",1,5,4);   
     var fontStyle = groover.utils.styles.createDrawStyle(undefined,"arial",16,"white");
     
-    this.alert = this.owner.ui.createUI("UIAlert","myAlert",{});
+    this.alert = this.owner.ui.createUI(
+        "UIAlerts",
+        "myAlert",
+        {
+            x:"center",
+            y:"center",
+            buttonStyles :{
+                button : groover.utils.namedStyles.UIAlertButton,
+                hover : groover.utils.namedStyles.UIAlertButtonHover,
+                click : groover.utils.namedStyles.UIAlertButtonClick,
+            },
+        }
+    );
   //  this.alert.setStyles(barStyle,checkStyle);
-    
+    this.alertType = 0;
     
     this.log =  this.owner.ui.createUI("UILogDisplay","Log",{pos:{x:0,y:0},displayLines:12,font:"14px Lucida Console",width:256});
     this.testGroup = this.owner.ui.createUI("UIGroup","testGroup");
@@ -440,7 +452,22 @@ GifViewer.prototype.display = function(){
     if(this.ready){
         if(!this.alert.active){
             this.alert.active = true;
-            this.alert.alert("The time is:\n"+this.time);
+            var doneFunction = (function(name){
+                log("Done with alert after "+name+" button clicked");
+                if(name === "cancel"){
+                    this.alertType = 2;
+                }
+            }).bind(this);
+            if(this.alertType === 0){
+                this.alert.alert("Some bigger text to see\nOverflow behaviour and stuff\nlinked to resizing the allerts\nThe time is:\n"+this.time,doneFunction);
+                this.alertType = 1;
+            }else
+            if(this.alertType === 1){
+                this.alert.prompt("Big number is cool:\nClick cancel to stop the alerts and prompts"+this.time,doneFunction);
+                this.alertType = 0;
+                
+            }
+            
         }
         this.render.drawBackground(this.images.background.image);
         if(groover.draggedOver){

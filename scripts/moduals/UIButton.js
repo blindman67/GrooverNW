@@ -15,20 +15,20 @@
             ui.update();
 
         }
-        if(settings.barStyle === undefined){
-            settings.barStyle = groover.utils.namedStyles.UIButton;
+        if(settings.style === undefined){
+            settings.style = groover.utils.namedStyles.UIButton;
         }        
         if(settings.hoverStyle === undefined){
             settings.hoverStyle = groover.utils.namedStyles.UIButtonHover;
         }        
-        if(settings.cickStyle === undefined){
+        if(settings.clickStyle === undefined){
             settings.clickStyle = groover.utils.namedStyles.UIButtonClick;
         }        
    
         if(settings.fontStyle === undefined){
             settings.fontStyle = groover.utils.styles.copyStyle(groover.utils.namedStyles.UIFont);
         }        
-        settings.height = settings.height===undefined?settings.barStyle.height:settings.height;        
+        settings.height = settings.height===undefined?settings.style.height:settings.height;        
         settings.fontStyle.fontSize = Math.max(12,settings.height-Math.floor(settings.height/3));
         settings.fontStyle.textAlign = "center";
         settings.fontStyle.textBaseline = "middle";
@@ -45,7 +45,6 @@
             canvas : undefined,
             settings : settings,
             hoverVal : 1,
-            viewName : settings.viewName === undefined?UI.owner.view.mainViewName:settings.viewName,
             hover : true,
             clicking : false,
             clickingVal : 1,
@@ -53,7 +52,6 @@
             onclick :settings.onclick,
             location : undefined, 
             setup : function () {
-                UI.owner.view.setViewByName(this.viewName);
                 if(this.canvas !== undefined){
                         this.location.set(settings.x,settings.y,undefined,settings.height);
                 }else{
@@ -61,7 +59,10 @@
                         this.canvas = this.owner.createCanvas(10,settings.height);
                         this.canvas.ctx.font = settings.fontStyle.fontSize + "px "+ settings.fontStyle.font;                        
                         var w = this.canvas.ctx.measureText(this.text).width;
-                        w += (settings.barStyle.inset + settings.barStyle.rounding)*2;
+                        w += (settings.style.inset + settings.style.rounding)*2;
+                        if(settings.minWidth !== undefined){
+                            w = Math.max(w,settings.minWidth);
+                        }
                         this.canvas = this.owner.createCanvas(w,settings.height*3);
                         this.location.set(settings.x,settings.y,undefined,settings.height);
                         
@@ -70,8 +71,6 @@
                         this.location.set(settings.x,settings.y,settings.width,settings.height);
                     }
                 }
-                UI.owner.view.setDefault();
-
             },            
             redraw : function(){
                 var ins,h,cw;
@@ -79,8 +78,8 @@
                 h = this.canvas.height / 3;
                 this.canvas.ctx.setTransform(1, 0, 0, 1, 0, 0);
                 this.canvas.ctx.clearRect(0, 0, cw, this.canvas.height);
-                ins = settings.barStyle.inset + settings.barStyle.lineWidth;
-                shapes.drawRectangle(this.canvas, ins, ins, cw - ins * 2, h - ins * 2, settings.barStyle);
+                ins = settings.style.inset + settings.style.lineWidth;
+                shapes.drawRectangle(this.canvas, ins, ins, cw - ins * 2, h - ins * 2, settings.style);
                 groover.utils.styles.assignFontToContext(this.canvas.ctx, settings.fontStyle);
                 this.canvas.ctx.fillText(this.text, cw / 2, h * 0.5);
 

@@ -27,6 +27,7 @@
         }        
         if(settings.fontStyle === undefined){
             settings.fontStyle = groover.utils.styles.copyStyle(groover.utils.namedStyles.UIFont);
+            settings.fontStyle.textAlign = "left";
         }        
         settings.height = settings.height===undefined?settings.barStyle.height:settings.height;        
         settings.fontStyle.fontSize = Math.max(12,settings.height-Math.floor(settings.height/3));
@@ -53,7 +54,6 @@
             },
             check : function(){this.setChecked(true);},
             uncheck : function(){this.setChecked(false);},
-            viewName : settings.viewName === undefined?UI.owner.view.mainViewName:settings.viewName,
             toolTip : settings.toolTip,
             text : settings.text,
             ready : false,
@@ -67,8 +67,6 @@
             onunchecked :settings.onunchecked,
             location : undefined, 
             setup : function () {
-                 UI.owner.view.setViewByName(this.viewName);
-                
                 if(this.canvas !== undefined){
                         this.location.set(settings.x,settings.y);
                 }else{
@@ -85,8 +83,6 @@
                         this.location.set(settings.x,settings.y);
                     }
                 }
-                UI.owner.view.setDefault();
-
             },            
             redraw : function(){
                 var cw,ins,h;
@@ -105,6 +101,7 @@
                 }
                 groover.utils.styles.assignFontToContext(this.canvas.ctx, settings.fontStyle);
                 this.canvas.ctx.fillText(this.text,this.location.h * 1,this.location.h * 0.5);
+                console.log(this.canvas.ctx.textAlign)
                 this.dirty = false;
             },
             update : function () {

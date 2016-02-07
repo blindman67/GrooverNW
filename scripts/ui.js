@@ -3,6 +3,7 @@ function UI(owner){
     this.owner = owner;
     this.bitmaps = this.owner.bitmaps;
     this.render = this.owner.render;
+    this.view = this.owner.view;
     this.MK = this.owner.mouseKeyboard;
     this.view = this.owner.view;
     this.icons = {};
@@ -342,9 +343,12 @@ UI.prototype.setupToolTip = function(){
 }
 
 UI.prototype.createLocationInterface = function(owner,group){
+
     return {
         owner : owner,
         group : group,
+        view : this.view,
+        viewName : this.view.currentViewName,
         add: function(x,y,w,h,id,index){  // must provide full coordinates. Having x,y,w,h as undefined or null will create unexpected results
             var position;
             if(this.list === undefined){
@@ -368,12 +372,14 @@ UI.prototype.createLocationInterface = function(owner,group){
                 position.w = this.w;
                 position.h = this.h;                
             }
+            
             if(this.group !== undefined){
                 this.group.recaculateBounds();
             }
             return position;
         },
         set: function(x,y,w,h){
+            this.view.pushViewByName(this.viewName);
             this.abstracted.x = x;
             this.abstracted.y = y;
             this.abstracted.w = w;
@@ -390,53 +396,96 @@ UI.prototype.createLocationInterface = function(owner,group){
             }
             if(w !== undefined){
                 if(w < 0){
+                    if(x === "center"){
+                        x = -w;
+                        w = this.view.width + (w * 2);                        
+                    }else
                     if(x !== undefined && x >= 0){
-                        w = (this.owner.owner.view.width - x) + w;
+                        w = (this.view.width - x) + w;
+                    }
+                }else{
+                    if(x === "center"){
+                        x = (this.view.width-w)/2;
                     }
                 }
                 this.w = w;
             }
             if(h !== undefined){
                 if(h < 0){
+                    if(y === "center"){
+                        y = -h;
+                        h = this.view.height + (h * 2);
+                    }else
                     if(y !== undefined && y >= 0){
-                        h = (this.owner.owner.view.height - y) + h;
+                        h = (this.view.height - y) + h;
+                    }
+                }else{
+                    if(y === "center"){
+                        y = (this.view.height-h)/2;
                     }
                 }
                 this.h = h;
             }
             if(x !== undefined){
+                if(x === "center"){
+                    if(this.w !== undefined){
+                        if(this.w < 0){
+                            x = - this.w;                            
+                            this.w = this.view.width  + this.w * 2; 
+                        }else{
+                            x = (this.view.width - this.w)/2;
+                        }
+                    }else{
+                        x = this.view.width /2;
+                    }
+                }else
                 if(x < 0){
                     if(this.w !== undefined){
                         if(this.w < 0){
-                            this.w = (this.owner.owner.view.width + x) + this.w;                            
-                            x = this.owner.owner.view.width - (-x + this.w);
+                            this.w = (this.view.width + x) + this.w;                            
+                            x = this.view.width - (-x + this.w);
                         }else{
-                            x = this.owner.owner.view.width - (-x + this.w);
+                            x = this.view.width - (-x + this.w);
                         }
                     }else{
-                        x = this.owner.owner.view.width + x;
+                        x = this.view.width + x;
                     }
                 }
                 this.x = x;
             }
             if(y !== undefined){
-                if(y < 0){                    
+                if(y === "center"){
                     if(this.h !== undefined){
                         if(this.h < 0){
-                            this.h = (this.owner.owner.view.height + y) + this.h;  
-                            y = this.owner.owner.view.height - (-y + this.h);
+                            y = - this.h; 
+                            this.h = this.view.height  + this.h * 2; 
                         }else{
-                            y = this.owner.owner.view.height - (-y + this.h);
+                            y = (this.view.height - this.h)/2;
                         }
                     }else{
-                        y = this.owner.owner.view.height + y;
+                        y = this.view.height /2;
+                    }                    
+                }else
+                if(y < 0){
+                    if(this.h !== undefined){
+                        if(this.h < 0){
+                            this.h = (this.view.height + y) + this.h;  
+                            y = this.view.height - (-y + this.h);
+                        }else{
+                            y = this.view.height - (-y + this.h);
+                        }
+                    }else{
+                        y = this.view.height + y;
                     }
                 }
                 this.y = y;
             }
+            this.x += this.view.left;
+            this.y += this.view.top;
             if(this.group !== undefined){
                 this.group.recaculateBounds();
             }
+            this.view.popView();
         },
         x : 0,
         y : 0,
@@ -469,9 +518,7 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
                 this.mouse.mousePrivate = 0
             }
             this.inactive = true;
-            if(this.owner.location !== undefined){
-                this.owner.location.alpha = 0.5;
-            }
+
         },
         activate : function(){
             this.inactive = false;
@@ -682,7 +729,16 @@ UI.prototype.UIGroup = function(name,settings,owner){
             this.location.set(xm, ym, xM - xm, yM - ym);
             this.dirty = true;
         },
-
+        mouseFunction : function(funcName){
+            var item,i,len;
+            len = this.items.length;
+            for(i = 0; i < len; i++){
+                item = this.items[i];
+                if(item.owner.mouse !== undefined && typeof item.owner.mouse[funcName] === "function"){
+                    item.owner.mouse[funcName]();
+                }
+            }                
+        },
         setup : function(){  
             var i, len;
             if(this.settings.ownCanvas){

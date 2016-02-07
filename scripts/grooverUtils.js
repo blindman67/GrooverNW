@@ -96,21 +96,8 @@ groover.author = {
 }
 
 
-
-/*
-displayTransform.ctx = ctx;
-displayTransform.mouse = mouse;
-displayTransform.setMouseRotate(2); // set rotate funtion to button 3
-displayTransform.setMouseTranslate(0); 
-displayTransform.setWheelZoom(); 
-displayTransform.setMode("smooth")
-
-        
-    
-*/
-
 groover.code = {
-    moduals : {
+    moduals : {  // contains named moduals...
         stub : function(){},
     },
     modualDir : process.cwd()+"\\scripts\\moduals",
@@ -136,6 +123,24 @@ groover.code = {
         if(appDescription.JavaScript.scripts === undefined){
             appDescription.JavaScript.scripts = [name + ".js"];
         }
+        if(groover.utils.namedStyles !== undefined){
+            if(appDescription.styles !== undefined){
+                for(var i = 0; i < appDescription.styles.length; i ++){
+                    var style = groover.utils.files.loadJson(this.applicationDir + "\\" +name+"\\"+appDescription.styles[i]);
+                    if(style !== undefined){
+                        log("Loaded styles '"+appDescription.styles[i]+"'");
+                        for(var j in style){
+                            groover.utils.namedStyles[j] = style[j];
+                            log("Added style '"+j+"'");
+                        }
+                    }else{
+                        log("Could not locate or load the style file '"+appDescription.styles[i]+"'","red");
+                    }
+                }
+            }
+        }
+                            
+                            
         
         var error = false;
         var modual = "";
@@ -157,14 +162,11 @@ groover.code = {
         if(error){
             log("Error loading application files.");
             return undefined;
-            
         }
-        
         modual += "\n\n";
         modual += "console.log('Application "+name+" for console referance.');\n";
         modual += "groover.code.parsed = true;\n";
         groover.code.parsed = false;
-
         try{  // add code to the web page and run 
             var script = $C('script');
             script.async = true;
@@ -180,10 +182,7 @@ groover.code = {
             }else{
                 console.log("Application '"+name+"' Failed to excecute.");
             }
-            
             return undefined;
-                
-
         }catch(e){
             log("Could not load Application '"+name+"' see console.", "red");
             console.log(e);
@@ -212,7 +211,6 @@ groover.code = {
         modual += "console.log('Modual "+name+" for console referance.');\n";
         modual += "groover.code.parsed = true;\n";
         groover.code.parsed = false;
-
         try{  // add code to the web page and run 
             var script = $C('script');
             script.async = true;
@@ -247,21 +245,16 @@ groover.code = {
             }else{
                 console.log("Modual '"+name+"' Failed to excecute.");
             }
-            
             return undefined;
-                
-
         }catch(e){
             log("Could not load Modual '"+name+"' see console.", "red");
             console.log(e);
         }        
-        
     }
-    
 };
 
 
-// bad name will move soon
+// bad name will move soon do not use.
 groover.directories = {
     scratch : path.parse("D:\\temp\\Groover"),
     currentProject : {
@@ -287,7 +280,6 @@ groover.utils.files = {
     },
     imageSaveDirectory : "D:\\Marks\\JavaScript\\GameEngine\\July2015",
     OSDelimiter : "\\",
-    
     currentDirectory : process.cwd(),
     saveText : function(filename,text,replace){
         var fileStats,dirStats;
@@ -311,7 +303,6 @@ groover.utils.files = {
             filename.ext = ".txt";
         }
         filename = filename.dir + this.OSDelimiter + filename.name + filename.ext;
-
         if(replace !== undefined && !replace ){
             try{
                 fileStats = fileSystem.statSync(filename);
@@ -323,7 +314,6 @@ groover.utils.files = {
                 // file does not exist so safe to write???
             }
         }
- 
         try{
             text = fileSystem.writeFileSync(filename, text, "utf8");
         }catch(e){
@@ -411,9 +401,6 @@ groover.utils.files = {
             name = path.parse(name);
             return filePath.dir + groover.utils.files.OSDelimiter + name.name + name.ext;
         });
-        
-        
-        
     },
     doesFileExist : function (filename){
         filename = path.parse(filename);
@@ -458,9 +445,7 @@ groover.utils.files = {
         }
         return this.saveText(filename,text);
     }
-    
 }
-
 groover.utils.namedStyles = {
     DEFAULT : {
         fillStyle : "White",
@@ -548,7 +533,7 @@ groover.utils.styles = {
                 cStyle[this.attributes[i]] = style[this.attributes[i]];
             }
         }
-        return style;
+        return cStyle;
         
     },
     createDrawStyle : function (name, col, lineCol, lineWidth, rounding, inset) {

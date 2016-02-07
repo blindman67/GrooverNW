@@ -1,10 +1,10 @@
 (function () {  // IconButton UI
     var create = function (name,settings,UI,owner) {
-        var ui,i,j,icon;
+        var ui,i,j,icon,uiReady;
         if(owner === undefined){
             owner = UI;
         }
-        var uiReady = function () {
+        uiReady = function () {
             ui.ready = true;
             ui.location = ui.owner.createLocationInterface(ui, settings.group);     
             if (settings.group !== undefined) {
@@ -12,9 +12,7 @@
             }            
             ui.setup();
             ui.update();
-
         }
-        
         UI.buttons = UI.bitmaps.startLoad("buttons",uiReady);
         for(i = 0; i < settings.icons.length; i++){
             icon = settings.icons[i];
@@ -26,7 +24,6 @@
             }
             icon.id = UI.MK.getHolderID();
         }
-        
         ui = {
             owner : owner,
             name : name,
@@ -52,7 +49,6 @@
                     icon.id = settings.icons[i].id;
                     icon.position = this.location.add(icon.x,icon.y,icon.w,icon.h,icon.id,i);
                 }
-
             },
             location : null, 
             update : function () {
@@ -90,7 +86,6 @@
                             if(m.hold && !m.overReal){
                                 this.holding = false;                               
                             }
-                            
                         }
                     }
                 }
@@ -106,7 +101,6 @@
                             this.owner.render.drawBitmapSize(icon.images[0].image,p.x,p.y,p.w,p.h,icon.alpha * l.alpha);
                         }else{
                             this.owner.render.drawBitmapSize(icon.images[1].image,p.x,p.y,p.w,p.h,icon.alpha * l.alpha);
-                            
                         }
                     }
                 }
