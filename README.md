@@ -1,7 +1,8 @@
-# GROOVER NS
-###THIS is a work in progress.
+#GROOVER NW
 
-##THIS is very much a work in progress and is subject to change at any time.
+A nw.js based native app framework for realtime 2D graphics applications using canvas.
+
+###THIS is very much a work in progress and is subject to change at any time.
 
 Groover is a set of applications and site for the design and creation of realtime cross platform media such as games, animations, pressentations and anything that requiers realtime pressention.
 
@@ -209,7 +210,7 @@ For creating formated canvas text.
 
 
 
-Security. 
+##Security. 
 
 As it is intendered for Groover to be able to run any javascript there is a security consern that is as yet to be addressed.
 
