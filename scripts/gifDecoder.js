@@ -311,6 +311,7 @@ groover.GIF = function(){
         }
         gif.cancelCallback = callback;
         gif.cancel = true;
+        return true;
     }
     // fire onload event is set
     var doOnloadEvent = function(){

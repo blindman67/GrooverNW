@@ -78,7 +78,7 @@
                                 m.releaseMouse();
                                 if(m.over && this.holding){                                    
                                     if(typeof icon.onclick === "function"){
-                                        icon.onclick(this);
+                                        icon.onclick(icon);
                                     }
                                 }
                                 this.holding = false;

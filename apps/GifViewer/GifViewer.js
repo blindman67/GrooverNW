@@ -68,7 +68,7 @@ function GifViewer(owner){
             max:100,
             value:0,
             handleSpan : 0.01,
-            x:140,
+            x:240,
             y:-8,
             width:-10,
             decimalPlaces:2,
@@ -81,9 +81,9 @@ function GifViewer(owner){
     );
     var by = -86;
     var bys = 34;
-    this.fitView = this.owner.ui.createUI(
+    this.infoButton = this.owner.ui.createUI(
         "UIButton",
-        "fitView",
+        "info",
         {
             x: 10,
             y: by,
@@ -107,11 +107,24 @@ function GifViewer(owner){
             x: 10,
             y: by,
             height : 30,
-            text : "Next",
-            toolTip :"Loads the next gif found in the\nin the current directory.",
+            text : "?",
+            toolTip :"Displays information about\nthe current gif.",
             onclick : (function(){
-                this.currentFile = (this.currentFile  + 1)%this.fileList.length;
-                this.loadGif({path:this.fileList[this.currentFile]});
+                if(this.gifImage !== undefined){
+                    var str = "#+#+#B#ACGIF Image Info########\n\n";
+                    var filename  = path.parse(this.gifImage.filename);
+                    str += "#BFilename:## #AR'"+filename.name + "'##\n";
+                    if(this.gifImage.image.comment !== ""){
+                        str += "#BGif Comment:##\n#AC'"+this.gifImage.image.comment + "'##\n\n";
+                    }
+                    var bSize = this.gifImage.image.frames.length*this.gifImage.image.frames[0].image.width * this.gifImage.image.frames[0].image.height * 4;
+                    str += "#BFrames:###F.###AR"+this.gifImage.image.frames.length+ "##\n";
+                    str += "#BLength:###F.###AR"+(this.gifTotalTime/1000).toFixed(2)+"seconds##\n";
+                    str += "#BSize:###F.###AR"+this.gifImage.image.frames[0].image.width + " by "+this.gifImage.image.frames[0].image.height + "##\n";
+                    str += "#BBytes:###F.###AR"+mMath.formatNumber(bSize,",")+ "bytes##\n";
+                    this.alert.alert(str);
+                }
+
             }).bind(this),
             group:this.testGroup,
         }
@@ -133,6 +146,7 @@ function GifViewer(owner){
         ))
         by -= bys;
     }*/
+    var bx = -35;
     this.checkFade = this.owner.ui.createUI(
         "UICheckBox",
         "checkBox1",
@@ -148,14 +162,28 @@ function GifViewer(owner){
 
     var icons = [
         {
+            filenames : ["icons\\prevOn.png","icons\\prevOff.png"],
+            x: bx+=45 ,
+            y : -12,
+            w : 40,
+            h : 32,
+            toolTip : "Load previouse gif",
+            cursor : "pointer",
+            onclick : (function(){
+                this.currentFile = (this.currentFile  + (this.fileList.length-1))%this.fileList.length;
+                this.loadGif({path:this.fileList[this.currentFile],type:"image/gif"});                
+            }).bind(this),
+        },       
+        {
             filenames : ["icons\\speedSlowerOn.png","icons\\speedSlowerOff.png"],
-            x: 10,
+            x: bx += 45,
             y : -12,
             w : 40,
             h : 32,
             toolTip : "Decrease play speed\nor step back a frame",
             cursor : "pointer",
             onclick : (function(){
+                var frameIndex ,nextFrameIndex;                
                 if(this.play){
                     if(this.playSpeed > 1){
                         this.playSpeed -= 0.5;
@@ -164,18 +192,15 @@ function GifViewer(owner){
                     }
                 }else
                 if(this.gifFrameCount > 0){
-                    nextFrameIndex = frameIndex = Math.floor(this.getGifFrameIndex(this.playTime));
-                    while(nextFrameIndex === frameIndex){
-                        this.playTime += 10;
-                        nextFrameIndex =Math.floor( this.getGifFrameIndex(this.playTime) );
-                    }
+                    frameIndex = Math.floor(this.getGifFrameIndex(this.playTime));
+                    this.playTime = this.getGifTimeIndex(((frameIndex -1)+this.gifImage.image.frames.length)%(this.gifImage.image.frames.length));
                     this.slider.value = (this.playTime/1000) % (this.gifTotalTime/1000);
                 }            
             }).bind(this),
         },
         {
             filenames : ["icons\\speedOn.png","icons\\speedOff.png"],
-            x: 60,
+            x: bx += 45,
             y : -12,
             w : 40,
             h : 32,
@@ -191,18 +216,28 @@ function GifViewer(owner){
                     }
                 }else
                 if(this.gifFrameCount > 0){
-                    nextFrameIndex = frameIndex = Math.floor(this.getGifFrameIndex(this.playTime));
-                    while(nextFrameIndex === frameIndex){
-                        this.playTime += 10;
-                        nextFrameIndex =Math.floor( this.getGifFrameIndex(this.playTime) );
-                    }
+                    frameIndex = Math.floor(this.getGifFrameIndex(this.playTime));
+                    this.playTime = this.getGifTimeIndex((frameIndex +1)%(this.gifImage.image.frames.length));
                     this.slider.value = (this.playTime/1000) % (this.gifTotalTime/1000);
                 }            
+            }).bind(this),
+        },        
+        {
+            filenames : ["icons\\nextOn.png","icons\\nextOff.png"],
+            x: bx += 45,
+            y : -12,
+            w : 40,
+            h : 32,
+            toolTip : "Load next gif",
+            cursor : "pointer",
+            onclick : (function(){
+                this.currentFile = (this.currentFile + 1)%this.fileList.length;
+                this.loadGif({path:this.fileList[this.currentFile],type:"image/gif"});                
             }).bind(this),
         },
         {
             filenames : ["icons\\pauseOn.png","icons\\pauseOff.png","icons\\playOn.png","icons\\playOff.png"],
-            x: 104,
+            x: bx += 55,
             y : -12, // negative is distance from the bottom of view to bottom of icon
             w : 32, // if there is a negative heigth or width then the value is calculated to fit that
             h : 32, // will make the width brint the right or bottom widthin that many pixels of the rigth or bottom of the view
@@ -219,26 +254,26 @@ GifViewer.prototype.setPlay = function(){
     if(this.play){
         return;
     }
-    this.togglePlay();    
+    this.togglePlay(this.iconButtons.icons[4]);    
 }
 GifViewer.prototype.setPause = function(){
     if(!this.play){
         return;
     }
-    this.togglePlay();    
+    this.togglePlay(this.iconButtons.icons[4]);    
 }
-GifViewer.prototype.togglePlay = function(){
+GifViewer.prototype.togglePlay = function(icon){
     if(this.play){
         this.play = false;
     }else{
         this.play = true;
     }
-    var t = this.iconButtons.icons[2].images[0];
-    this.iconButtons.icons[2].images[0] = this.iconButtons.icons[2].images[2];
-    this.iconButtons.icons[2].images[2] = t;
-    var t = this.iconButtons.icons[2].images[1];
-    this.iconButtons.icons[2].images[1] = this.iconButtons.icons[2].images[3];
-    this.iconButtons.icons[2].images[3] = t;
+    var t = icon.images[0];
+    icon.images[0] = icon.images[2];
+    icon.images[2] = t;
+    var t = icon.images[1];
+    icon.images[1] = icon.images[3];
+    icon.images[3] = t;
     
 }
 GifViewer.prototype.lostView = function(){
@@ -251,7 +286,7 @@ GifViewer.prototype.lostView = function(){
     this.newView = true;
 }
 
-// draws a nice And way over kill welcome screen.
+// draws a nice and way over kill welcome screen.
 GifViewer.prototype.iconsAvaliable = function(imageGroup){
     this.icons = imageGroup;
     var text = groover.appDescription.settings.welcomeName ? groover.appDescription.settings.welcomeName:"GIF GROOVER!";
@@ -379,6 +414,15 @@ GifViewer.prototype.imageDropped = function(file){
         }
     }
 }    
+
+// load a gif file.
+// file is the file descriptor
+// {
+//  path : "full file name and path",
+//  type : "mime type as string" example "image/gif"
+// }
+// If an existing gif then remove it if loaded
+// if not loaded cancel set cancel callback to this function.    
 GifViewer.prototype.loadGif = function(file){
     if(file.type === "image/gif"){
         if(this.gifImages){
@@ -409,7 +453,6 @@ GifViewer.prototype.loadGif = function(file){
 GifViewer.prototype.update = function(){
     if(this.view.refreshed){
         this.lostView();
-        log("Refresh");
     }
     var time = new Date().valueOf();
     this.frameTime = time-this.time;
@@ -418,20 +461,29 @@ GifViewer.prototype.update = function(){
 }
 GifViewer.prototype.createGifTimeline = function(){
     this.timeline = [];
+    this.frameTimes = [];
     if(this.gifImage !== undefined){
         var img = this.gifImage.image;
         var frames = img.frames;
         var len = frames.length;
         for(var i = 0; i < len; i++){
             var delay = frames[i].delay?frames[i].delay:1;
+            this.frameTimes.push( this.timeline.length * 10 );
             for(var j = 0; j < delay; j += 1){
                 this.timeline.push(i + j / delay);
             }            
         }
+        this.frameTimes.push( this.timeline.length * 10 );
         this.gifTotalTime = (this.timeline.length-1) * 10;
         this.gifFrameCount = frames.length;    
     }
 }
+GifViewer.prototype.getGifTimeIndex = function(frame){
+    log("Frame time "+this.frameTimes.length);
+    frame = ((frame % this.frameTimes.length)+this.frameTimes.length)%this.frameTimes.length;    
+    return this.frameTimes[Math.floor(frame)];
+}
+
 GifViewer.prototype.getGifFrameIndex = function(time){
     var frame,next,timeI;
     time /= 10;
@@ -450,7 +502,7 @@ GifViewer.prototype.display = function(){
     var frameTime,img,frames,len,frameCount,frameIndex;    
     var info = "No frames loaded.";
     if(this.ready){
-        if(!this.alert.active){
+        /*if(!this.alert.active){
             this.alert.active = true;
             var doneFunction = (function(name){
                 log("Done with alert after "+name+" button clicked");
@@ -468,7 +520,7 @@ GifViewer.prototype.display = function(){
                 
             }
             
-        }
+        }*/
         this.render.drawBackground(this.images.background.image);
         if(groover.draggedOver){
             if(this.fadeOut === undefined){
@@ -501,7 +553,7 @@ GifViewer.prototype.display = function(){
             frameCount = len;
             if(this.MK.mousePrivate === 0 && this.MK.B1){
                 this.MK.B1 = false;
-                this.togglePlay();
+                this.togglePlay(this.iconButtons.icons[4]);
             }
             if(this.gifImage.ready){
                 if(!img.complete){
@@ -517,7 +569,6 @@ GifViewer.prototype.display = function(){
                         this.createGifTimeline();
                         this.slider.handleSpan = (this.gifTotalTime/1000)/len;
                         this.slider.setMinMax(0,this.gifTotalTime/1000);
-                        //this.slider.max = this.gifTotalTime/1000;
                     }
                 }
                 
@@ -541,19 +592,21 @@ GifViewer.prototype.display = function(){
                 }else{
                     frameBetweenCount = frameIndex-this.lastFrameIndex;
                 }
-                
-                this.render.drawBitmapGSRA(frames[Math.floor(frameIndex)].image,0,0,1,0,1);
+                var f = frames[Math.floor(frameIndex)];
+                this.render.drawBitmapGSRA(f.image,0,0,1,0,1);
 
                 if(this.checkFade.checked){
                     if(frameBetweenCount >= 2 && this.play){
                         var fade = 2/(frameBetweenCount-1);
                         for(var i = 1; i < frameBetweenCount -1; i ++){
-                            this.render.drawBitmapGSRA(frames[Math.floor(this.lastFrameIndex +i)%frameCount].image,0,0,1,0,fade);
+                            var f1 = frames[Math.floor(this.lastFrameIndex +i)%frameCount];
+                            this.render.drawBitmapGSRA(f1.image,0,0,1,0,fade);
                         }
                     }else{
                         if(this.play || (!this.play && Math.floor(frameIndex+1)%frameCount > Math.floor(frameIndex))){
                             var fade = (frameIndex%1)
-                            this.render.drawBitmapGSRA(frames[Math.floor(frameIndex+1)%frameCount].image,0,0,1,0,fade);
+                            var f1 = frames[Math.floor(frameIndex+1)%frameCount]
+                            this.render.drawBitmapGSRA(f1.image,0,0,1,0,fade);
                         }
                     }
                 }
@@ -568,7 +621,6 @@ GifViewer.prototype.display = function(){
                         info = "Length:"+(this.gifTotalTime/1000).toFixed(2)+"seconds Speed:"+(this.playSpeed).toFixed(2);
                     }else{
                         info = "Frame:"+frameIndex.toFixed(0) + "/"+frameCount;
-                        
                     }
                 }
                 this.lastFrameIndex = frameIndex;

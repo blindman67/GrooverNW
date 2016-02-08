@@ -130,7 +130,49 @@ var mMath = {
             return this.pads[Math.max(0,p-4)] + num;
         }          
     },
-    
+    formatNumber : function(val,format){
+        var e = 0;
+        var preFix = "";
+        var postFix = "";
+        var d = format.indexOf(".");
+        if(d > -1){
+            var e = format.lastIndexOf("#");
+            if(e > -1){
+                 e = e-d;
+            }            
+        }
+        if(format.indexOf("%")>-1){
+            val = val * 100;
+            postFix = "%";
+        }
+        if(format.indexOf("$")>-1){
+            e = 2;
+            preFix = "$";
+        }
+        if(format.indexOf(",")>-1){
+            var n = Math.abs(val).toFixed(e);
+            if(e > 0){
+                var l = n.length-e;
+                var nn = n.substr(l);
+                l -= 1;
+            }else{
+                var l = n.length -1;
+                var nn = "";
+            }
+            var c = 1;
+            while(l >= 0){
+                nn = n[l]+nn;
+                if(c === 3 && l !== 0){
+                    c = 0;
+                    nn = ","+nn;
+                }
+                c += 1;
+                l -= 1;
+            }
+            return preFix+(val <0?"-":"")+nn+postFix;
+        }
+        return preFix+val.toFixed(e)+postFix;
+    },
     // gemoetry lines etc  
     // 2D Cross and Dot products for vectors and lines.
     // for vectors postFix V eg dotProductV 

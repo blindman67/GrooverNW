@@ -1,6 +1,6 @@
 (function(){  // **MODUAL** code will have use strit prefixed
     // important do not add anything above this line. Modual loading adds (use strict) and accepts the returned value of this function
-    var shapes;
+    var shapes,textRender;
     var create = function (name,settings,UI,owner) {
         if(owner === undefined){
             owner = UI;
@@ -42,6 +42,7 @@
                 maxW = -Infinity;
                 if(this.canvas !== undefined){  // though this should not be a problem there may be cases where canvas does not exist
                     groover.utils.styles.assignFontToContext(this.canvas.ctx, this.style);
+                    textRender.getExtent(this.canvas.ctx,this.text,0,0);
                     for(i = 0; i < this.text.length; i++){
                         w = this.canvas.ctx.measureText(this.text[i]).width;
                         maxW = Math.max(maxW,w);
@@ -54,11 +55,14 @@
                     if(this.canvas === undefined || this.canvas.width !== this.width || this.canvas.height !== this.height){
                         this.canvas = this.owner.createCanvas(this.width,this.height);;                   
                     }
-                    var w = this.measureText() + this.style.fontSize*2;
-                    var textHeight = this.text.length * this.style.fontSize * 1.2;
-
-                    this.width = Math.max(200,w);
-                    this.height = Math.max(100,textHeight + this.style.fontSize * 3);
+                    //var w = this.measureText() + this.style.fontSize*2;
+                    //var textHeight = this.text.length * this.style.fontSize * 1.2;
+                    groover.utils.styles.assignFontToContext(this.canvas.ctx, this.style);
+                    if(typeof this.text === "string"){
+                        this.text = textRender.formatText(this.canvas.ctx,this.text);
+                    }
+                    this.width = Math.max(200,this.text.width +  this.style.fontSize * 2);
+                    this.height = Math.max(100,this.text.height + this.style.fontSize * 3);
                     if(this.canvas.width !== this.width || this.canvas.height !== this.height){
                         this.canvas = this.owner.createCanvas(this.width,this.height);;                   
                     }                    
@@ -78,17 +82,25 @@
                 var ins = this.style.inset + this.style.lineWidth;
                 shapes.drawRectangle(this.canvas, ins, ins, this.canvas.width - ins * 2, this.canvas.height - ins * 2, this.style);
                 groover.utils.styles.assignFontToContext(this.canvas.ctx, this.style);
-                var h = this.style.fontSize *0.9;
-                for(var i = 0; i < this.text.length;i += 1){
-                    this.canvas.ctx.fillText(this.text[i], this.width/2, h);            
-                    h += this.style.fontSize * 1.2;
+                if(this.text !== undefined){
+                    textRender.fillText(this.canvas.ctx,this.text,this.width/2,this.style.fontSize *0.9,"center");
                 }
+                //var h = this.style.fontSize *0.9;
+                //for(var i = 0; i < this.text.length;i += 1){
+                //    this.canvas.ctx.fillText(this.text[i], this.width/2, h);            
+                //    h += this.style.fontSize * 1.2;
+                //}
                 this.dirty = false;
             },
             alert : function(text,callback){
+                if(this.active){
+                    return false;
+                }
+                    
                 this.x = "center";
                 this.y = "center";
-                this.text = text.split("\n");
+                this.text = text;
+                //this.text = text.split("\n");
                 this.setup();
              
                 if(this.groupAlert === undefined){
@@ -130,9 +142,13 @@
                 this.group.recaculateBounds();
             },
             prompt : function(text,callback){
+                if(this.active){
+                    return false;
+                }
                 this.x = "center";
                 this.y = "center";
-                this.text = text.split("\n");
+                this.text = text;
+               // this.text = text.split("\n");
                 this.setup();
              
                 if(this.groupPrompt === undefined){
@@ -238,6 +254,10 @@
     var configure = function(){
         if(shapes === undefined){
             shapes = groover.code.load("shapes2D");
+        }
+        if(textRender === undefined){
+            textRender = groover.code.load("textRender");
+            
         }
         if(groover.utils.namedStyles.UIAlertStyle === undefined){
             groover.utils.styles.createFontStyle("UIAlertStyle","arial",20,"black","center","hanging");
