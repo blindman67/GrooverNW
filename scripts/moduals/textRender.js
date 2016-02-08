@@ -2,7 +2,6 @@
     // important do not add anything above this line. Modual loading adds (use strict) and accepts the returned value of this function
     
     // renders formated text
-    // style delimiter is #! to add a # use \#
     var ids = 1;
     var textRender = {
         fillText_OLD : function(ctx,text,x,y,styleInfo){
@@ -33,14 +32,21 @@
             }
             return {width : maxWidth,height : tLines.length * lineSize};            
         },
-        STYLES : {
-            BOLD : ids ++,  // #B
-            FILL : ids ++,  // #F  the segment string is repeated to fill to next segment or end of line
-            BIG : ids ++, // #+
+        STYLES : {  // comments show the format specifier which start with a { and then the format code/info
+                    // then the text and then the format is closed with }
+                    // Eg to have bold text "{BBold Text}" 
+                    //    for right aligned "{ARThis text is aligned right}"
+                    // The formats can be nested and will carry past new lines
+                    // example of nesting "{+Big text {BNow bold and big{#F00 Now red bold and big} back to just bold and big} back to big} now just default"
+            BOLD : ids ++,  // {B
+            FILL : ids ++,  // {F  the segment string is repeated to fill to next segment or end of line
+            BIG : ids ++, // {+   increase scale by 0.2
+            SMALL : ids ++, // {-  decrease scale  by 0.1
+            COLOR : ids ++, // {#FFF  Only supporting RGB short format. This will be expanded as the need arrises.
             ALIGN : {
-                LEFT : ids ++,  // #AL
-                CENTER : ids ++,// #AC
-                RIGHT : ids ++, // #AR
+                LEFT : ids ++,  // {AL
+                CENTER : ids ++,// {AC
+                RIGHT : ids ++, // {AR
             },
             VALIGN : {
                TOP : ids ++,
@@ -71,27 +77,32 @@
         },
         formatText : function(ctx,text){
             function addSeg(){
+                var added = false;
                 if(str !== ""){
                     segs.push({
                         str : str,
                         width : width*scaleX,
-                        y : line,
+                        y : lineID,
                         x : x,
                         sx : scaleX,
                         sy : scaleY,
+                        color : currentColour,
                         styles : [].concat(styles),
                     });
+                    added = true;
                 }
                 lineWidth += width*scaleX;
                 x += width*scaleX;
                 width = 0;
                 str = "";
+                return added;
             }
                         
             var segs = [];
+            var colourStack = [];
+            var currentColour = ctx.fillStyle;
             var i,c;
             var len;
-            var line = 0;
             var seg = "";
             var sizes = this.measureCharacters(ctx);
             var styles = [];
@@ -102,12 +113,15 @@
             var lineSpace = 1.2;
             var maxLineSpace = lineSpace;
             var maxWidth = -Infinity;
+            var lastLineAt = 0;
+            var lineID = -1;
+            var newLine = true;
             var str = "";
             var x = 0;
             len = text.length;
             for(i = 0; i < len; i++){
                 c = text[i];
-                if(c !== "#"){
+                if(c !== "{" && c !== "}"){
                     if(c === "\\"){
                         i ++;
                         if(i < len){
@@ -118,20 +132,31 @@
                     }
                     if(c === "\n"){
                         addSeg();
+                        var k = segs.length -1;
+                        var yy = lineID;
+                        while(k >= 0 && segs[k].y === yy){
+                            segs[k].y = lastLineAt + sizes[0] * maxLineSpace;
+                            k -= 1;
+                        }
+                        lineID -= 1;
+                        lastLineAt = lastLineAt + sizes[0] * maxLineSpace;
+                        newLine = true;
                         maxWidth = Math.max(maxWidth,lineWidth);
                         lineWidth = 0;
-                        line += sizes[0] * maxLineSpace;
                         maxLineSpace = lineSpace;
                         x = 0;
                         
                     }else{
+                        newLine = false;
                         str += c;
                         maxLineSpace = Math.max(lineSpace*scaleY,maxLineSpace);
                         if(c !== ""){
                             width += sizes[c.charCodeAt(0)];
                         }
                     }
-                }else{
+                }else
+                if(c === "{"){
+                    newLine = false;
                     addSeg();
                     i ++;
                     if(i < len){
@@ -140,13 +165,6 @@
                         c = "";
                     }
                     c = c.toUpperCase();
-                    if(c === "#"){
-                        var ps = styles.pop();
-                        if(ps === this.STYLES.BIG){
-                            scaleX -= 0.2;
-                            scaleY -= 0.2;
-                        }
-                    }else
                     if(c === "B"){
                         styles.push(this.STYLES.BOLD);
                     }else
@@ -157,6 +175,25 @@
                         styles.push(this.STYLES.BIG);
                         scaleX += 0.2;
                         scaleY += 0.2;
+                    }else
+                    if(c === "-"){
+                        styles.push(this.STYLES.SMALL);
+                        scaleX -= 0.1;
+                        scaleY -= 0.1;
+                    }else
+                    if(c === "#"){
+                        styles.push(this.STYLES.COLOR);
+                        var col = "#";
+                        for(var k = 0; k < 3; k++){
+                            i ++;
+                            if(i < len){
+                                col += text[i].toUpperCase();
+                            }else{
+                                col += "0";
+                            }
+                        }
+                        colourStack.push(currentColour);
+                        currentColour = col;
                     }else
                     if(c === "A"){
                         i ++;
@@ -175,10 +212,76 @@
                             styles.push(this.STYLES.ALIGN.RIGHT);
                         }
                     }
-                }          
+                }else{
+                    newLine = false;
+                    addSeg();
+                    var ps = styles.pop();
+                    if(ps === this.STYLES.COLOR){
+                        currentColour = colourStack.pop();
+                    }else
+                    if(ps === this.STYLES.BIG){
+                        scaleX -= 0.2;
+                        scaleY -= 0.2;
+                    }else
+                    if(ps === this.STYLES.SMALL){
+                        scaleX += 0.1;
+                        scaleY += 0.1;
+                    }
+                }
+                    
             }
             if(str !== ""){
                 addSeg();
+            }
+            if(!newLine){  // set the baseline for last line
+                var k = segs.length -1;
+                var yy = lineID;
+                while(k >= 0 && segs[k].y === yy){
+                    segs[k].y = lastLineAt+ sizes[0] * maxLineSpace;
+                    k -= 1;
+                }
+            }                        
+                
+            var alignW;
+            function getAjoinedAlignment(i,alignment){
+                var k = i;
+                var same = true;
+                var line = segs[i].y;
+                alignW = 0;
+                while(k < segs.length && same){
+                    same = false     
+                    if(segs[k].y === line){
+                        for(var j = 0; j < segs[k].styles.length; j ++){
+                            if(segs[k].styles[j] === alignment){
+                                alignW += segs[k].width;
+                                same = true
+                                break;                            
+                            }
+                        }
+                    }
+                    if(same){
+                        k++;
+                    }
+                }
+                return k;   
+            }
+            var STYLES = this.STYLES; // for the function 
+            function positionSegs(i,j,alignment,totalW){
+                var x = 0;
+                if(alignment === STYLES.ALIGN.LEFT){
+                    x = 0;
+                }else
+                if(alignment === STYLES.ALIGN.RIGHT){
+                    x = maxWidth - totalW;
+                }else
+                if(alignment === STYLES.ALIGN.CENTER){
+                    x = maxWidth/2 - totalW/2;
+                }
+                for(var k = i; k < j; k ++){
+                    var seg = segs[k];
+                    seg.x = x;
+                    x += seg.width;
+                }                
             }
             // Do a alignment pass
             for(i = 0; i < segs.length; i ++){
@@ -186,14 +289,9 @@
                 var s = seg.styles;
                 for(var j = 0; j < s.length; j ++){
                     var ss = s[j];
-                    if(ss === this.STYLES.ALIGN.LEFT){
-                        seg.x = 0;
-                    }else
-                    if(ss === this.STYLES.ALIGN.RIGHT){
-                        seg.x = maxWidth - seg.width;
-                    }else
-                    if(ss === this.STYLES.ALIGN.CENTER){
-                        seg.x = maxWidth/2 - seg.width/2;
+                    if(ss === this.STYLES.ALIGN.LEFT || ss === this.STYLES.ALIGN.RIGHT || ss === this.STYLES.ALIGN.CENTER){
+                        var ii = getAjoinedAlignment(i,ss);
+                        positionSegs(i,ii,ss,alignW);
                     }else
                     if(ss === this.STYLES.BOLD){
                         seg.bold = true;
@@ -211,7 +309,11 @@
                         if(i === 0){
                             sx = 0;
                         }else{
-                            sx = segs[i-1].x + segs[i-1].width;
+                            if(segs[i-1].y === seg.y){
+                                sx = segs[i-1].x + segs[i-1].width;
+                            }else{
+                                sx = 0;
+                            }
                         }
                         if(segs[i + 1] === undefined){
                             ex = maxWidth;
@@ -227,7 +329,7 @@
                         var len = seg.width;
                         while(len < (ex-sx)){
                             c = seg.str[pos%seg.str.length];
-                            len += sizes[c.charCodeAt(0)];
+                            len += sizes[c.charCodeAt(0)] * seg.sx;
                             if(len < (ex-sx)){
                                 str += c;
                             }
@@ -242,7 +344,7 @@
             }
             return {
                 width : maxWidth,
-                height : line,
+                height : lastLineAt,
                 text : segs,
             }
         },
@@ -255,13 +357,21 @@
                 x -= text.width;
             }
             var alignSave = ctx.textAlign;
+            var baseSave = ctx.textBaseline;
+            var colSave = ctx.fillStyle;
+            var lastCol = colSave;
             ctx.textAlign = "left";
+            ctx.textBaseline = "alphabetic";
             for(var i = 0; i < text.text.length; i ++){
                 var t = text.text[i];
+                if(t.color !== lastCol){
+                    ctx.fillStyle = t.color;
+                    lastCol = t.color;
+                }
                 ctx.setTransform(t.sx,0,0,t.sy,t.x+ x,t.y+ y);
                 if(t.bold){
-                    ctx.fillText(t.str,-0.5,0);
-                    ctx.fillText(t.str,0.5,0);
+                    ctx.fillText(t.str,-0.25,0);
+                    ctx.fillText(t.str,0.25,0);
                     
                 }else{
                     ctx.fillText(t.str,0,0);
@@ -269,6 +379,8 @@
             }
             ctx.setTransform(1,0,0,1,0,0);
             ctx.textAlign = alignSave;
+            ctx.textBaseline = baseSave;
+            ctx.fillStyle = colSave;
         }
         
     };

@@ -83,7 +83,8 @@
                 shapes.drawRectangle(this.canvas, ins, ins, this.canvas.width - ins * 2, this.canvas.height - ins * 2, this.style);
                 groover.utils.styles.assignFontToContext(this.canvas.ctx, this.style);
                 if(this.text !== undefined){
-                    textRender.fillText(this.canvas.ctx,this.text,this.width/2,this.style.fontSize *0.9,"center");
+                    //textRender.fillText(this.canvas.ctx,this.text,this.width/2,this.style.fontSize *0.9,"center");
+                    textRender.fillText(this.canvas.ctx,this.text,this.width/2,0,"center");
                 }
                 //var h = this.style.fontSize *0.9;
                 //for(var i = 0; i < this.text.length;i += 1){

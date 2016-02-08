@@ -111,17 +111,17 @@ function GifViewer(owner){
             toolTip :"Displays information about\nthe current gif.",
             onclick : (function(){
                 if(this.gifImage !== undefined){
-                    var str = "#+#+#B#ACGIF Image Info########\n\n";
+                    var str = "{+{+{B{ACGIF Image Info}}}}\n\n";
                     var filename  = path.parse(this.gifImage.filename);
-                    str += "#BFilename:## #AR'"+filename.name + "'##\n";
+                    str += "{BFilename:}{F.}{AR'"+(filename.name +filename.ext)+ "'}\n";
                     if(this.gifImage.image.comment !== ""){
-                        str += "#BGif Comment:##\n#AC'"+this.gifImage.image.comment + "'##\n\n";
+                        str += "{BGif Comment:}\n{AC'"+this.gifImage.image.comment + "'}\n\n";
                     }
                     var bSize = this.gifImage.image.frames.length*this.gifImage.image.frames[0].image.width * this.gifImage.image.frames[0].image.height * 4;
-                    str += "#BFrames:###F.###AR"+this.gifImage.image.frames.length+ "##\n";
-                    str += "#BLength:###F.###AR"+(this.gifTotalTime/1000).toFixed(2)+"seconds##\n";
-                    str += "#BSize:###F.###AR"+this.gifImage.image.frames[0].image.width + " by "+this.gifImage.image.frames[0].image.height + "##\n";
-                    str += "#BBytes:###F.###AR"+mMath.formatNumber(bSize,",")+ "bytes##\n";
+                    str += "{BFrames:}{F.}{AR"+this.gifImage.image.frames.length+ "}\n";
+                    str += "{BLength:}{F.}{AR"+(this.gifTotalTime/1000).toFixed(2)+" seconds}\n";
+                    str += "{BSize:}{F.}{AR"+this.gifImage.image.frames[0].image.width + " by "+this.gifImage.image.frames[0].image.height + "}\n";
+                    str += "{BBytes:}{F.}{AR"+mMath.formatNumber(bSize,",")+ " bytes}\n";
                     this.alert.alert(str);
                 }
 

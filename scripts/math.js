@@ -130,6 +130,15 @@ var mMath = {
             return this.pads[Math.max(0,p-4)] + num;
         }          
     },
+    // this code need testing and is from an old Groover app.
+    // Returns a string of the number formated acording to the format 
+    // val: the number to format
+    // format: string holding the desiered format information
+    //      Some format strings
+    //      ","  add commas for number eg 100000 becomes "100,000"
+    //      "%"  creates a percentage from a fraction. eg 0.8 becoms "80%"
+    //      "$"  creates a money amount  eg 10 becomes $10.00
+    //      ".##" adds decimal places eg 11 becomes 11.00 the number of # determins the number of decimal places
     formatNumber : function(val,format){
         var e = 0;
         var preFix = "";

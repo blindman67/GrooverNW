@@ -149,6 +149,59 @@ The core renderer. Providing general purpose render functions.
 UI handler for creating and managing UI's and provide some common shared methods (toolTop, Locatoion, mouse/key)
 
 
+##Modual files.
+Details regarding modual files.
+
+To load a modual named `filename` and get the object it returns. For now do not add any directory information to the name.
+```JavaScript
+var modual = groover.code.load("filename"); // filename is the modual name without the extention .js
+```
+Will load the file `/scripts/moduals/filename.js`
+
+Will return undefined if there are problems, ie cant find file, or parsing/excecution errors.
+
+If the modual has been loaded then the loaded copy is used thus not duplicating any code.
+
+Moduals may have dependencies and should load them them selves.
+
+The basic form of a modual file is as follows
+
+```JavaScript
+(function(){
+   var object = { 
+     // your code
+   }
+   return object;  // the object may be anything apart from undefined
+})()
+```
+
+When the modual is loaded it is appened to the document head and wrapped in some extra code.
+
+The loaded script
+
+```JavaScript
+"use strict";
+groover.code.moduals.filename = (function(){
+   var object = { 
+     // your code
+   }
+   return object;  // the object may be anything apart from undefined
+})()
+console.log('Modual filename for console referance.');
+groover.code.parsed = true;
+```
+
+The "use strict" directive is added and the object is added to the groover.code.moduals name space. There is a console report appened for debugging there is also a flag set to true. This is in order to find parsing errors and avoid adding error handling as that will cause the code to negate some V8 optimisation.
+
+If the modual fails to be parsed then it is reloaded without the "use strict" directive though it may still fail it could fix some errors.
+
+###Some moduals
+####shapes2D
+Utilities for rendering a veriaty of shapes to the canvas. See the code for info.
+####gradients
+For gradient helpers.
+####textRender
+For creating formated canvas text. 
 
 
 

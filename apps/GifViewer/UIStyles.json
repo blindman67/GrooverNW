@@ -16,7 +16,7 @@
     },
     "UIAlertStyle" : {
         "inset" : 0,
-        "fontSize" : 20,
+        "fontSize" : 16,
         "fontColour" : "black",
         "fillStyle" : "#FDB",
         "strokeStyle" : "black",
