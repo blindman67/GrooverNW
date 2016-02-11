@@ -1,66 +1,86 @@
 (function () {  // Slider Small UI
     var shapes;
     var create = function (name,settings,UI,owner) {
-        var h,ww;
+        var h,ww,id;
+        id = groover.utils.IDS.getID();      
+        if(settings.styleID === undefined){
+            settings.styleID = id;
+        }
         
+        // function to start the UI
+        var uiReady = function () {
+            log("Slider start");
+            ui.ready = true;
+            ui.location = ui.owner.createLocationInterface(ui, settings.group);
+            ui.setup();
+            if (settings.group !== undefined) {
+                settings.group.addUI(ui.location);
+            }
+            ui.update();
+            log("Slider end");
+        }
 
-
-                
-        if(settings.handleStyle === undefined){
-            settings.handleStyle = groover.utils.namedStyles.UISliderHandle;            
+        // check for styles 
+        if(settings.style === undefined){
+            settings.style = {};
         }
-        if(settings.barStyle === undefined){
-            settings.barStyle = groover.utils.namedStyles.UISlider;            
+        if(settings.style.handle === undefined){
+            settings.style.handle = groover.utils.namedStyles.UISliderHandle;            
         }
-        if(settings.numDisplayStyle === undefined){
-            settings.numDisplayStyle = groover.utils.namedStyles.UISliderDisplay;            
+        if(settings.style.bar === undefined){
+            settings.style.bar = groover.utils.namedStyles.UISlider;            
         }
-        if(settings.fontStyle === undefined){
-            settings.fontStyle = groover.utils.styles.copyStyle(groover.utils.namedStyles.UIFont);
+        if(settings.style.numDisplay === undefined){
+            settings.style.numDisplay = groover.utils.namedStyles.UISliderDisplay;            
+        }
+        if(settings.style.font === undefined){
+            settings.style.font = groover.utils.styles.copyStyle(groover.utils.namedStyles.UIFont);
         }         
-        settings.height = settings.height===undefined?settings.barStyle.height:settings.height;
+        // use styles to get sizes
+        settings.height = settings.height===undefined?settings.style.bar.height:settings.height;
         h = settings.height;
         ww = Math.floor(h + 20);        
         settings.handleWidth = settings.handleWidth===undefined?30:settings.handleWidth;
-        if(settings.handleWidth < (settings.handleStyle.rounding + settings.handleStyle.inset)*2 + 10){
-            settings.handleWidth = (settings.handleStyle.rounding + settings.handleStyle.inset)*2 + 10;
+        if(settings.handleWidth < (settings.style.handle.rounding + settings.style.handle.inset)*2 + 10){
+            settings.handleWidth = (settings.style.handle.rounding + settings.style.handle.inset)*2 + 10;
         }
-        settings.fontStyle.fontSize = Math.max(12,settings.height-Math.floor(settings.height/4));
+        settings.style.font.fontSize = Math.max(12,settings.height-Math.floor(settings.height/4));
 
 
 
-        
+        // if owner not supplied set the UI as the owner
         if(owner === undefined){
             owner = UI;
         }
         
-        var handle = UI.bitmaps.create("icons",settings.handleWidth,h, "handle")
-        var bar = UI.bitmaps.create("icons",(settings.barStyle.rounding + settings.barStyle.inset)*2 + 10,h, "bar")
-        var numContainer = UI.bitmaps.create("icons",(settings.numDisplayStyle.rounding + settings.numDisplayStyle.inset)*2 + 10,h, "numContainer")
-        var numSprites = UI.bitmaps.create("icons",600,h, "customSlider")
+        var handle = UI.bitmaps.create("icons",(settings.style.handle.rounding + settings.style.handle.inset)*2+10,h, "handle"+settings.styleID)
+        var bar = UI.bitmaps.create("icons",(settings.style.bar.rounding + settings.style.bar.inset)*2 + 10,h, "bar"+settings.styleID)
+        var numContainer = UI.bitmaps.create("icons",(settings.style.numDisplay.rounding + settings.style.numDisplay.inset)*2 + 10,h, "numContainer"+settings.styleID)
+        var numSprites = UI.bitmaps.create("icons",600,h, "customSlider"+settings.styleID)
 
         var lw = 3;
        
+       
+        // Draw handle if not drawn
         if(!handle.drawn){
-            lw = settings.handleStyle.lineWidth + settings.handleStyle.inset ;
-            ww = (settings.handleStyle.rounding + settings.handleStyle.inset)*2+10;
-            settings.minHandleWidth = ww-5;
-            shapes.drawRectangle(handle.image,lw,lw,ww-lw*2,h-lw*2,settings.handleStyle );
-            ww = (settings.handleStyle.rounding + settings.handleStyle.inset);
+            lw = settings.style.handle.lineWidth + settings.style.handle.inset ;
+            ww = handle.image.width;
+            shapes.drawRectangle(handle.image,lw,lw,ww-lw*2,h-lw*2,settings.style.handle );
+            ww = (settings.style.handle.rounding + settings.style.handle.inset);
             handle.image.sprites = [];
             handle.image.sprites.push({x:0,y:0,w:ww,h:h});
-            handle.image.sprites.push({x:ww,y:0,w:handle.image.width-ww*2,h:h});
+            handle.image.sprites.push({x:ww,y:0,w:10,h:h});
             handle.image.sprites.push({x:handle.image.width-ww,y:0,w:ww,h:h});
             handle.drawn = true;            
-            //lw = settings.handleStyle.lineWidth + settings.handleStyle.inset ;
-            //shapes.drawRectangle(handle.image,lw,lw,settings.handleWidth-lw*2,h-lw*2,settings.handleStyle);
-            //handle.drawn = true;
         }
+        settings.minHandleWidth = (settings.style.handle.rounding + settings.style.handle.inset)*2+5;
+        
+        
         if(!bar.drawn){
-            lw = settings.barStyle.lineWidth + settings.barStyle.inset ;
-            ww = (settings.barStyle.rounding + settings.barStyle.inset)*2+10;
-            shapes.drawRectangle(bar.image,lw,lw,ww-lw*2,h-lw*2,settings.barStyle );
-            ww = (settings.barStyle.rounding + settings.barStyle.inset);
+            lw = settings.style.bar.lineWidth + settings.style.bar.inset ;
+            ww = (settings.style.bar.rounding + settings.style.bar.inset)*2+10;
+            shapes.drawRectangle(bar.image,lw,lw,ww-lw*2,h-lw*2,settings.style.bar );
+            ww = (settings.style.bar.rounding + settings.style.bar.inset);
             bar.image.sprites = [];
             bar.image.sprites.push({x:0,y:0,w:ww,h:h});
             bar.image.sprites.push({x:ww,y:0,w:bar.image.width-ww*2,h:h});
@@ -68,10 +88,10 @@
             bar.drawn = true;
         }
         if(!numContainer.drawn){
-            lw = settings.numDisplayStyle.lineWidth + settings.numDisplayStyle.inset ;
-            ww = (settings.numDisplayStyle.rounding + settings.numDisplayStyle.inset)*2+ 10;
-            shapes.drawRectangle(numContainer.image,lw,lw,ww-lw*2,h-lw*2,settings.numDisplayStyle);
-            ww = (settings.numDisplayStyle.rounding + settings.numDisplayStyle.inset);
+            lw = settings.style.numDisplay.lineWidth + settings.style.numDisplay.inset ;
+            ww = (settings.style.numDisplay.rounding + settings.style.numDisplay.inset)*2+ 10;
+            shapes.drawRectangle(numContainer.image,lw,lw,ww-lw*2,h-lw*2,settings.style.numDisplay);
+            ww = (settings.style.numDisplay.rounding + settings.style.numDisplay.inset);
             numContainer.image.sprites = [];
             numContainer.image.sprites.push({x:0,y:0,w:ww,h:h});
             numContainer.image.sprites.push({x:ww,y:0,w:numContainer.image.width-ww*2,h:h});
@@ -79,40 +99,30 @@
             numContainer.drawn = true;
         }
         if(!numSprites.drawn){
-            numSprites.image.ctx.font = settings.fontStyle.fontSize+"px "+settings.fontStyle.font
+            numSprites.image.ctx.font = settings.style.font.fontSize+"px "+settings.style.font.font
             numSprites.image.ctx.textBaseline = "middle";
             numSprites.image.ctx.textAlign = "left";
-            numSprites.image.ctx.fillStyle = settings.fontStyle.fontColour;
+            numSprites.image.ctx.fillStyle = settings.style.font.fontColour;
             numSprites.image.ctx.fillText("0 1 2 3 4 5 6 7 8 9 . + -",0,h/2);
-            var chars = "0123456789.+-";
-            var maxWidth = 0;
-            for(var i = 0; i < chars.length; i ++){
-                maxWidth = Math.max(maxWidth,numSprites.image.ctx.measureText(chars[i]).width);
-            }
-            settings.fontWidth = maxWidth+2;
             UI.bitmaps.horizontalSpriteCutter(numSprites);
             numSprites.drawn = true;
         }
-        
-        
-        
-        
-
-        var uiReady = function () {
-            ui.ready = true;
-            ui.location = ui.owner.createLocationInterface(ui, settings.group);
-            if (settings.group !== undefined) {
-                settings.group.addUI(ui.location);
-            }
-            ui.setup();
-            ui.update();
-
+        var maxWidth = 0;
+        for(var i = 0; i < numSprites.image.sprites.length; i ++){
+            maxWidth = Math.max(maxWidth,numSprites.image.sprites[i].w);
         }
-        UI.icons = UI.bitmaps.startLoad("icons",uiReady);
+        settings.fontWidth = maxWidth+2;        
+        
+        
+        
+
+
+        
 
         var ui = {
             owner : owner,
             name : name,
+            id : id,          
             ready : false,
             toolTip : settings.toolTip,
             settings : settings,
@@ -159,6 +169,7 @@
                 this.setHandleWidth(this.handleSpan);
                 //this.handleWidth = this.handle.image.width;
                 this.dirty = true;  // flag as dirty so it is redrawn
+                log("Slider","YELLOW");
             },
             redraw : function(){
                 var bar = this.bar.image;
@@ -205,7 +216,6 @@
                 rend.drawSpriteA(hdl,0, pos-this.handleWidth/2,0, 1);
                 rend.drawSpriteAW(hdl,1, pos-this.handleWidth/2+pw, 0,this.handleWidth-pw*2, 1);
                 rend.drawSpriteA(hdl,2, pos+this.handleWidth/2-pw, 0, 1);
-                //rend.drawBitmapA(hdl, pos-hdl.width/2, 0, 1);
                 rend.popCTX();
               
                 this.dirty = false;
@@ -292,6 +302,7 @@
             }
         }
         ui.mouse = UI.createMouseInterface(ui);
+        uiReady();
         return ui;
     }
     var configure = function(){

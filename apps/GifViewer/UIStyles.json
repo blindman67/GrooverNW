@@ -43,6 +43,33 @@
         "textBaseline" : "middle",
         "miterLimit" : 0
     },
+    "UIColourSliderBar" : {
+        "inset" : 4,
+        "fillStyle" : "rgba(128,128,128,0.25)",
+        "strokeStyle" : "Black",
+        "lineWidth" : 1,
+        "lineJoin" : "round",
+        "lineCap" : "round",
+        "rounding" : 3,
+        "height" : 30
+    },
+    "UIColourSliderHandle" : {
+        "inset" : 1,
+        "fillStyle" : "#FC5",
+        "strokeStyle" : "black",
+        "lineWidth" : 1,
+        "lineJoin" : "round",
+        "lineCap" : "round",
+        "rounding" : 5
+    },
+    "UIColourSliderDisplay" : {
+        "inset" : 0,
+        "fontSize" : 16,
+        "fillStyle" : "Green",
+        "strokeStyle" : "black",
+        "lineWidth" : 1,
+        "rounding" : 4
+    },    
     "UISlider" : {
         "inset" : 13,
         "fontSize" : 16,

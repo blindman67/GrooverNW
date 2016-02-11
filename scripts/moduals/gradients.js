@@ -102,6 +102,14 @@
             }
             return gr;
         },
+        createLight : function(r,g,b,a,height,pos){
+            return {
+                rgb :[r,g,b],
+                alpha : a,
+                height : height,
+                pos : pos,
+            }
+        },            
         createLightGrad : function (size,light,material){
             var y,gr, r, g, b, a, rgb, eye, step, i,z, h, ref, ref1,d1,d2,l, dist, ang, ang1,falloff,suf;
                           

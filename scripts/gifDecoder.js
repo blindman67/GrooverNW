@@ -37,10 +37,8 @@ groover.GIF = function(){
             }while(size !== 0 && this.pos < len);
             return data;
         }
-                
     };    
     var st;  // holds the stream when loaed.
-
     // LZW decoder uncompresses each frames pixels
     // this needs to be optimised. 
     // minSize is the min dictionary as powers of two
@@ -77,7 +75,6 @@ groover.GIF = function(){
                 done = true;
                 return out;
             }
-
             if (code >= dic.length){
                 dic.push(dic[last].concat(dic[last][0]));
             }else
@@ -119,6 +116,7 @@ groover.GIF = function(){
         }
         setTimeout(parseBlock, 0);
     };    
+    // get app specific data
     var parseAppExt = function () { // get appliction specific data. Netscape added iterations and terminator. Ignoring that
         st.pos += 1;
         if('NETSCAPE' === st.getString(8)) {
@@ -128,6 +126,7 @@ groover.GIF = function(){
             st.readSubBlocks();// unknown app extention
         }
     };    
+    // get GC data
     var parseGCExt = function () {
         var bitField;
         st.pos++;
@@ -139,6 +138,7 @@ groover.GIF = function(){
         gif.transparencyIndex = st.data[st.pos++];
         st.pos++;
     };
+    // decodes image data to create the indexed pixel image
     var parseImg = function () {
         var deinterlace, frame, bitField;
         deinterlace = function (pixels, width) {
@@ -159,13 +159,8 @@ groover.GIF = function(){
             }
             return newPixels;
         };
-        //if(gif.delayTime === 0 && gif.frames.length > 0){
-        //    frame = gif.frames[gif.frames.length-1];
-        //    log("Repeated frame @F:"+(gif.frames.length-1));
-        //}else{
-            frame = {}
-            gif.frames.push(frame);
-        //}
+        frame = {}
+        gif.frames.push(frame);
         frame.disposalMethod = gif.disposalMethod;
         frame.delay = gif.delayTime;
         gif.totalDelay += frame.delay;
@@ -213,7 +208,6 @@ groover.GIF = function(){
         pDat = frame.pixels;
         pixCount = pDat.length;
         ind = 0;
-
         for( i = 0; i < pixCount; i++){
             pixel = pDat[i];
             col = ct[pixel];
@@ -233,11 +227,11 @@ groover.GIF = function(){
         frame.image.ctx.putImageData(cData, frame.leftPos, frame.topPos);   
         gif.lastFrame = frame;
         frame.pixels = undefined;
-        
         if(!gif.waitTillDone && typeof gif.onload === "function"){  // if !waitTillDone the call onload now after first frame is loaded
             doOnloadEvent();
         }
     };
+    // called when the load has completed
     var finnished = function(){
         gif.loading = false;
         gif.frameCount = gif.frames.length;            
@@ -254,12 +248,14 @@ groover.GIF = function(){
             (gif.onloadall.bind(gif))({type : 'loadall', path : [gif]});
         }                
     }
+    // called if the load has been canceled
     var canceled = function(){
         finnished();
         if(typeof gif.cancelCallback === "function"){
             (gif.cancelCallback.bind(gif))({type : 'canceled', path : [gif]});
         }        
     }
+    // parse extended blocks
     var parseExt = function(){
         switch (st.data[st.pos++]) {
             case 0xF9:
@@ -278,12 +274,12 @@ groover.GIF = function(){
                 break;
         }    
     }
+    // parsing the blocks
     var parseBlock = function () {
         if(gif.cancel !== undefined && gif.cancel === true){
             canceled();
             return;
         }
-            
         switch (st.data[st.pos++]) { 
             case 0x2c: // image block
                 parseImg();
@@ -305,6 +301,7 @@ groover.GIF = function(){
         }        
         setTimeout(parseBlock, 0); // parsing frame async so processes can get some time in.
     };        
+    // cancels the loading. This will cancel the load befor the next frame is decoded
     var cancelLoad = function(callback){
         if(gif.complete){
             return false;
@@ -338,10 +335,12 @@ groover.GIF = function(){
             gif.loading = false;
         }
     }
+    // starts the load
     var loadGif = function(filename){
         this.loading = true;
         fileSystem.readFile(this.src, dataLoaded.bind(this));
     }
+    // the gif image object
     var gif = {
         src: null,
         onload : null,

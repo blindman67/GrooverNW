@@ -15,6 +15,7 @@
         }        
         var ui = {
             owner : owner,
+            id : groover.utils.IDS.getID(),
             groupAlert : undefined,
             groupPrompt : undefined,
             canvas : undefined,
@@ -24,7 +25,6 @@
             y : settings.y,
             text : undefined,
             okButton : undefined,
-            style : undefined,
             dirty : false,
             active : false,
             show : false,
@@ -37,26 +37,36 @@
                 this.style = alertStyle;
                 this.buttonStyles = buttonStyles;
             },
-            measureText : function(){
-                var i, w, maxW;
-                maxW = -Infinity;
-                if(this.canvas !== undefined){  // though this should not be a problem there may be cases where canvas does not exist
-                    groover.utils.styles.assignFontToContext(this.canvas.ctx, this.style);
-                    textRender.getExtent(this.canvas.ctx,this.text,0,0);
-                    for(i = 0; i < this.text.length; i++){
-                        w = this.canvas.ctx.measureText(this.text[i]).width;
-                        maxW = Math.max(maxW,w);
+            release : function(){
+                if(this.canvas !== undefined){
+                    this.owner.owner.view.removeNamedView(this.viewName);
+                    if(this.canvas.ctx !== undefined){
+                        this.canvas.ctx = undefined;
                     }
+                    this.canvas = undefined;
                 }
-                return maxW
+                if(this.groupAlert !== undefined){
+                    this.okButton.release();
+                    this.okButton = undefined;
+                    this.groupAlert = undefined;
+                }
+                if(this.groupPrompt !== undefined){
+                    this.okPButton.release();
+                    this.cancelPButton.release();
+                    this.cancelPButton = undefined;
+                    this.okPButton = undefined;
+                    this.groupPrompt = undefined;
+                }
+                this.style = undefined;
+                this.buttonStyles = undefined;
+                this.mouse = undefined;
+                this.location = undefined;
             },
             setup : function(){
                 if(this.text !== undefined){
                     if(this.canvas === undefined || this.canvas.width !== this.width || this.canvas.height !== this.height){
                         this.canvas = this.owner.createCanvas(this.width,this.height);;                   
                     }
-                    //var w = this.measureText() + this.style.fontSize*2;
-                    //var textHeight = this.text.length * this.style.fontSize * 1.2;
                     groover.utils.styles.assignFontToContext(this.canvas.ctx, this.style);
                     if(typeof this.text === "string"){
                         this.text = textRender.formatText(this.canvas.ctx,this.text);
@@ -83,27 +93,18 @@
                 shapes.drawRectangle(this.canvas, ins, ins, this.canvas.width - ins * 2, this.canvas.height - ins * 2, this.style);
                 groover.utils.styles.assignFontToContext(this.canvas.ctx, this.style);
                 if(this.text !== undefined){
-                    //textRender.fillText(this.canvas.ctx,this.text,this.width/2,this.style.fontSize *0.9,"center");
                     textRender.fillText(this.canvas.ctx,this.text,this.width/2,0,"center");
                 }
-                //var h = this.style.fontSize *0.9;
-                //for(var i = 0; i < this.text.length;i += 1){
-                //    this.canvas.ctx.fillText(this.text[i], this.width/2, h);            
-                //    h += this.style.fontSize * 1.2;
-                //}
                 this.dirty = false;
             },
             alert : function(text,callback){
                 if(this.active){
                     return false;
                 }
-                    
                 this.x = "center";
                 this.y = "center";
                 this.text = text;
-                //this.text = text.split("\n");
                 this.setup();
-             
                 if(this.groupAlert === undefined){
                      this.groupAlert = this.owner.createUI("UIGroup","AlertGroup");
                      this.owner.owner.view.pushViewByName(this.viewName);
@@ -149,9 +150,7 @@
                 this.x = "center";
                 this.y = "center";
                 this.text = text;
-               // this.text = text.split("\n");
                 this.setup();
-             
                 if(this.groupPrompt === undefined){
                      this.groupPrompt = this.owner.createUI("UIGroup","PromptGroup");
                      this.owner.owner.view.pushViewByName(this.viewName);

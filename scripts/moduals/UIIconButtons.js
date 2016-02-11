@@ -27,6 +27,7 @@
         ui = {
             owner : owner,
             name : name,
+            id : groover.utils.IDS.getID(),            
             toolTip : "",
             ready : false,
             dirty : true,

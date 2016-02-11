@@ -712,6 +712,38 @@ UI.prototype.UIGroup = function(name,settings,owner){
                 this.setupList[this.setupList.length] = UILocation.owner;
             }
         },
+        release : function(id){
+            var i,len;
+            len = this.items.length;
+            for(i = 0; i < len; i ++){
+                if(this.items[i].owner.id === id){
+                    this.items.splice(i,1);
+                    break;
+                }
+            }
+            len = this.updateList.length;
+            for(i = 0; i < len; i ++){
+                if(this.updateList[i].owner.id === id){
+                    this.updateList.splice(i,1);
+                    break;
+                }
+            }
+            len = this.displayList.length;
+            for(i = 0; i < len; i ++){
+                if(this.displayList[i].owner.id === id){
+                    this.displayList.splice(i,1);
+                    break;
+                }
+            }
+            len = this.setupList.length;
+            for(i = 0; i < len; i ++){
+                if(this.setupList[i].owner.id === id){
+                    this.setupList.splice(i,1);
+                    break;
+                }
+            }
+            recalculateBounds();
+        },
         recaculateBounds : function(){
             var i, len, xm, xM, ym, yM,item;
             len = this.items.length;

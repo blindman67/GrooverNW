@@ -39,6 +39,7 @@
         var ui = {
             owner : owner,
             name : name,
+            id : groover.utils.IDS.getID(),                        
             checked : settings.checked,
             setChecked : function (value){
                 if(this.checked !== value){

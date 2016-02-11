@@ -53,6 +53,12 @@ View.prototype.setDefault = function(){
     this.currentViewName = this.mainViewName;
     
 }
+
+View.prototype.removeNamedView = function(name){
+    if(this.namedViews[name] !==  undefined){
+        this.namedViews[name] = undefined;
+    }
+}
 View.prototype.addNamedView = function(name,canvas,top,left){
     if(canvas === undefined){
         this.namedViews[name] = {
@@ -118,7 +124,8 @@ View.prototype.create = function(width,height){
     return frame;
 }
 
-
+// this handles the display transformation and mouse interface.
+// Currently in mMath but may be moved.
 mMath.getDisplayTransformer = function(){
     return (function(){                
         const buttons = [1, 2, 4];

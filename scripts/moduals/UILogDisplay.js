@@ -7,7 +7,8 @@
         var ui = {
             owner : owner,
             name : name,
-            ready : false,
+            id : groover.utils.IDS.getID(),            
+           ready : false,
             settings : settings,
             toolTip : settings.toolTip,
             canvas : UI.createCanvas(settings.width,settings.displayLines * (Number(settings.font.split("px")[0]) + 3)+ 8),  

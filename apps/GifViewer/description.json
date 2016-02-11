@@ -9,6 +9,10 @@
     },
     "settings" : {
         "welcomeName" : "GIF Groover.",
-        "welcomeMessage" : "Drop groovey GIFs here!"
+        "welcomeMessage" : "Drop groovey GIFs here!",
+        "imageDump" : "D:\\Marks\\JavaScript\\GameEngine\\July2015",
+        "imageDumpQuality" : 0.05,
+        "imageDumpType" : "jpg"
+        
     }
 }

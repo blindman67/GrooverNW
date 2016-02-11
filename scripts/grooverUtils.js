@@ -59,7 +59,6 @@ groover.createCanvas = function(type){  // defaults to fullscreen no other types
     canvas.ctx = canvas.getContext("2d"); 
     return canvas;
 };
-
 groover.author = {
     details: {
         author    : "Mark Sppronck",
@@ -94,8 +93,6 @@ groover.author = {
         };
     }
 }
-
-
 groover.code = {
     moduals : {  // contains named moduals...
         stub : function(){},
@@ -128,10 +125,8 @@ groover.code = {
                 for(var i = 0; i < appDescription.styles.length; i ++){
                     var style = groover.utils.files.loadJson(this.applicationDir + "\\" +name+"\\"+appDescription.styles[i]);
                     if(style !== undefined){
-                        log("Loaded styles '"+appDescription.styles[i]+"'");
                         for(var j in style){
                             groover.utils.namedStyles[j] = style[j];
-                            log("Added style '"+j+"'");
                         }
                     }else{
                         log("Could not locate or load the style file '"+appDescription.styles[i]+"'","red");
@@ -252,8 +247,6 @@ groover.code = {
         }        
     }
 };
-
-
 // bad name will move soon do not use.
 groover.directories = {
     scratch : path.parse("D:\\temp\\Groover"),
@@ -266,7 +259,6 @@ groover.directories = {
     },
     home : path.parse("D:\\Marks\\Dev\\GrooverNW"),
 };
-
 // general file utilites
 // load and save text
 // load and save JSON
@@ -465,7 +457,7 @@ groover.utils.namedStyles = {
         
 }
 // for creating styles.
-groover.utils.styles = {
+groover.utils.styles = {    
     attributes : "inset,fontSize,fontColour,fillStyle,strokeStyle,lineWidth,lineJoin,lineCap,font,textAlign,textBaseline,miterLimit".split(","),
     setFontStyle : function ( style, font, fontSize, fontColour,textAlign, textBaseline ){
         style.font = font === null || font === undefined ? style.font : font;
@@ -581,3 +573,27 @@ groover.utils.styles = {
         
     },    
 }
+
+groover.utils.language = {
+    objectCopyCombine : function (obj,combineObj){
+        var i ;
+        var nobj = {};
+        for(i in obj){
+            nobj[i] = obj[i];
+        }
+        for(i in combineObj){
+            nobj[i] = combineObj[i];
+        }
+        return nobj;        
+    },
+    objectCopy : function (obj){
+        var i ;
+        var nobj = {};
+        for(i in obj){
+            nobj[i] = obj[i];
+        }
+        return nobj;        
+    },
+    
+}
+

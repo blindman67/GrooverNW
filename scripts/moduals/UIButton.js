@@ -13,6 +13,7 @@
                 settings.group.addUI(ui.location);
             }
             ui.update();
+           
 
         }
         if(settings.style === undefined){
@@ -37,6 +38,7 @@
         var ui = {
             owner : owner,
             name : name,
+            id : groover.utils.IDS.getID(),            
             toolTip : settings.toolTip,
             text : settings.text,
             ready : false,
@@ -51,25 +53,33 @@
             holding : false,
             onclick :settings.onclick,
             location : undefined, 
+            release : function(){
+                if(settings.group !== undefined){
+                    settings.group.release(this.id);
+                }
+                if(this.canvas !== undefined){
+                    if(this.canvas.ctx !== undefined){
+                        this.canvas.ctx = undefined;
+                    }
+                    this.canvas = undefined;
+                }
+                this.location = undefined;
+                this.mouse = undefined;
+            },
             setup : function () {
                 if(this.canvas !== undefined){
                         this.location.set(settings.x,settings.y,undefined,settings.height);
                 }else{
-                    if(settings.width === undefined || settings.width <= 0){
-                        this.canvas = this.owner.createCanvas(10,settings.height);
-                        this.canvas.ctx.font = settings.fontStyle.fontSize + "px "+ settings.fontStyle.font;                        
-                        var w = this.canvas.ctx.measureText(this.text).width;
-                        w += (settings.style.inset + settings.style.rounding)*2;
-                        if(settings.minWidth !== undefined){
-                            w = Math.max(w,settings.minWidth);
-                        }
-                        this.canvas = this.owner.createCanvas(w,settings.height*3);
-                        this.location.set(settings.x,settings.y,undefined,settings.height);
-                        
-                    }else{
-                        this.canvas = this.owner.createCanvas(settings.width, this.sprites.image.height*3);
-                        this.location.set(settings.x,settings.y,settings.width,settings.height);
+                    this.canvas = this.owner.createCanvas(10,settings.height);
+                    this.canvas.ctx.font = settings.fontStyle.fontSize + "px "+ settings.fontStyle.font;                        
+                    var w = this.canvas.ctx.measureText(this.text).width;
+                    w += (settings.style.inset + settings.style.rounding)*2;
+                    if(settings.minWidth !== undefined){
+                        w = Math.max(w,settings.minWidth);
                     }
+                    this.canvas = this.owner.createCanvas(w,settings.height*3);
+                    this.location.set(settings.x,settings.y,undefined,settings.height);
+                    
                 }
             },            
             redraw : function(){

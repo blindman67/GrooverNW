@@ -4,34 +4,6 @@
     // renders formated text
     var ids = 1;
     var textRender = {
-        fillText_OLD : function(ctx,text,x,y,styleInfo){
-            var str = text.replace(/\\#/g," GGG ");
-            var tLines = str.split("\n");
-            var font = ctx.font;
-            var fontSize = Number(font.split("px")[0]);
-            var lineSize = Math.floor(fontSize * 1.2);
-            var i;
-            for(i = 0; i < tLines.length; i ++){
-                tLines[i] = tLines[i].replace(/ GGG /g,"#");
-                var width = ctx.measureText(tLines[i]).width;                
-                ctx.fillText(tLines[i],x,y+i*lineSize);
-            }
-        },
-        getExtent : function(ctx,text,x,y,styleInfo){
-            var str = text.replace(/\\#/g," %%% ");
-            var tLines = str.split("\n");
-            var font = ctx.font;
-            var fontSize = Number(font.split("px")[0]);
-            var lineSize = Math.floor(fontSize * 1.2);
-            var i;
-            var maxWidth = -Infinity;
-            for(i = 0; i < tLines.length; i ++){
-                tLines[i] = tLines[i].replace(/ GGG /g,"#");
-                var width = ctx.measureText(tLines[i]).width;
-                maxWidth = Math.max(maxWidth,width);
-            }
-            return {width : maxWidth,height : tLines.length * lineSize};            
-        },
         STYLES : {  // comments show the format specifier which start with a { and then the format code/info
                     // then the text and then the format is closed with }
                     // Eg to have bold text "{BBold Text}" 
@@ -76,6 +48,7 @@
             return this.characterSizes[font];
         },
         formatText : function(ctx,text){
+            var aligned = [];
             function addSeg(){
                 var added = false;
                 if(str !== ""){
@@ -89,6 +62,7 @@
                         color : currentColour,
                         styles : [].concat(styles),
                     });
+                    aligned.push(false);
                     added = true;
                 }
                 lineWidth += width*scaleX;
@@ -242,6 +216,7 @@
                 }
             }                        
                 
+            var aligned = [];
             var alignW;
             function getAjoinedAlignment(i,alignment){
                 var k = i;
@@ -281,17 +256,20 @@
                     var seg = segs[k];
                     seg.x = x;
                     x += seg.width;
+                    aligned[k] = true;
                 }                
             }
             // Do a alignment pass
             for(i = 0; i < segs.length; i ++){
                 var seg = segs[i];
                 var s = seg.styles;
-                for(var j = 0; j < s.length; j ++){
+                for(var j = s.length-1; j >= 0; j --){
                     var ss = s[j];
                     if(ss === this.STYLES.ALIGN.LEFT || ss === this.STYLES.ALIGN.RIGHT || ss === this.STYLES.ALIGN.CENTER){
-                        var ii = getAjoinedAlignment(i,ss);
-                        positionSegs(i,ii,ss,alignW);
+                        if(!aligned[i]){
+                            var ii = getAjoinedAlignment(i,ss);
+                            positionSegs(i,ii,ss,alignW);
+                        }
                     }else
                     if(ss === this.STYLES.BOLD){
                         seg.bold = true;
@@ -342,6 +320,17 @@
                     
                 }                    
             }
+            // do clean up pass
+            for(i = 0; i < segs.length; i ++){
+                var seg = segs[i];
+                if(seg.str.trim() === ""){
+                    segs.splice(i,1);
+                    i--;
+                }else{
+                    seg.styles = undefined;
+                }
+            }
+            console.log(segs);
             return {
                 width : maxWidth,
                 height : lastLineAt,
