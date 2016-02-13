@@ -5,32 +5,15 @@
         if(owner === undefined){
             owner = UI;
         }
-        var uiReady = function () {
-            ui.ready = true;
-            ui.location = ui.owner.createLocationInterface(ui, settings.group);
-            ui.setup();
-            if (settings.group !== undefined) {
-                settings.group.addUI(ui.location);
-            }
-        }        
+
         var ui = {
-            owner : owner,
-            id : groover.utils.IDS.getID(),
             groupAlert : undefined,
             groupPrompt : undefined,
-            canvas : undefined,
-            width : settings.width !== undefined?settings.width:200,
-            height : settings.height !== undefined?settings.height:100,
-            x : settings.x,
-            y : settings.y,
-            text : undefined,
             okButton : undefined,
-            dirty : false,
             active : false,
             show : false,
             showTimer : 0,
             viewName :  name+"View",
-            created : false,
             style : groover.utils.namedStyles.UIAlertStyle,
             buttonStyles : settings.buttonStyles,
             setStyles : function (buttonStyle,alertStyle){
@@ -133,7 +116,6 @@
                         }
                     );          
                     this.owner.owner.view.popView();
-                    this.created = true;
                 }
                 this.callback = callback;
                 this.show = true;
@@ -203,7 +185,6 @@
                         }
                     );          
                     this.owner.owner.view.popView();
-                    this.created = true;
                 }
                 this.callback = callback;
                 this.show = true;
@@ -247,8 +228,7 @@
                 }
             }
         };
-        ui.mouse = UI.createMouseInterface(ui);
-        uiReady();
+        UI.addUIDefaults.bind(ui)(UI,owner,name,settings);
         return ui;
     }
     var configure = function(){

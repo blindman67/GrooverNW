@@ -205,6 +205,7 @@ GifViewer.prototype.createUI = function(){
             toolTip :"Resets the view to fit within the window.",
             onclick : this.fitView.bind(this),
             group:this.mainUI,
+            minWidth : 10,
     }
     by-= bys;
     var fill = copy(fit,{y : by, text : "Fill", onclick : this.fillView.bind(this), toolTip :"Resets the view to fill the window."});

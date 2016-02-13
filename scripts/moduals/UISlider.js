@@ -7,16 +7,7 @@
             settings.styleID = id;
         }
         
-        // function to start the UI
-        var uiReady = function () {
-            ui.ready = true;
-            ui.location = ui.owner.createLocationInterface(ui, settings.group);
-            ui.setup();
-            if (settings.group !== undefined) {
-                settings.group.addUI(ui.location);
-            }
-            ui.update();
-        }
+
 
         // check for styles 
         if(settings.style === undefined){
@@ -112,23 +103,16 @@
         settings.fontWidth = maxWidth+2;        
         
         var ui = {
-            owner : owner,
-            name : name,
             id : id,          
-            ready : false,
-            toolTip : settings.toolTip,
-            settings : settings,
             min : settings.min,
             max : settings.max,
             handleSpan : settings.handleSpan !== undefined ? settings.handleSpan: 1,
             value : settings.value,
             oldValue : null,
-            dirty : true,
             sprites : numSprites,        // image
             handle : handle,             // image
             numContainer : numContainer, // image
             bar :  bar,                  // image
-            canvas : undefined,
             draggingSlider : false,
             dragStartPos : 0,
             ondrag : typeof settings.ondrag === "function"?settings.ondrag:undefined,
@@ -136,7 +120,6 @@
             digets : settings.digets,
             numWidth : (settings.digets + 1) * settings.fontWidth,
             handleWidth : settings.handleWidth,
-            location : undefined, // stub till ready to set location
             setHandleWidth : function(value){
                 this.handleSpan = value;
                 value = Math.min(1,value/(this.max-this.min));
@@ -294,8 +277,7 @@
                 }
             }
         }
-        ui.mouse = UI.createMouseInterface(ui);
-        uiReady();
+        UI.addUIDefaults.bind(ui)(UI,owner,name,settings);
         return ui;
     }
     var configure = function(){

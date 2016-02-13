@@ -872,6 +872,31 @@ UI.prototype.UIGroup = function(name,settings,owner){
     ui.location = this.createLocationInterface(ui);
     return ui;
 }
+UI.prototype.addUIDefaults = function(UI,owner,name,settings){
+    this.owner = owner;
+    this.name = name;
+    this.id = this.id === undefined ? groover.utils.IDS.getID() : this.id;
+    this.toolTip = settings.toolTip;
+    this.text = settings.text;
+    this.dirty = true;
+    this.canvas = undefined;
+    this.settings = settings;
+    settings.minWidth  = settings.minWidth !== undefined ? settings.minWidth : 200
+    settings.minHeight = settings.minHeight !== undefined ? settings.minHeight : 200
+    this.width = settings.width !== undefined ? settings.width : settings.minWidth;
+    this.height = settings.height !== undefined ? settings.height : settings.minHeight;
+    this.x = settings.x;
+    this.y = settings.y;    
+    this.group = settings.group;
+    this.mouse = UI.createMouseInterface(this);            
+    this.location = UI.createLocationInterface(this, settings.group);
+    this.setup();
+    if (settings.group !== undefined) {
+        settings.group.addUI(this.location);
+    }
+    this.update();
+    this.ready = true;
+}
 // stub function is used to fill missing UI moduals and stop the system crashing 
 // the stub does nothing
 UI.prototype.UIStub = function(name,data,owner){

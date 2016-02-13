@@ -1,21 +1,9 @@
 (function () {  // CheckBox UI
     var shapes;
     var create = function (name,settings,UI,owner) {
-        var tempX,tempY,tempH,tempW;
         if(owner === undefined){
             owner = UI;
         }
-        var uiReady = function () {
-            ui.ready = true;
-            ui.location = ui.owner.createLocationInterface(ui, settings.group);
-            ui.setup();
-            if (settings.group !== undefined) {
-                settings.group.addUI(ui.location);
-            }
-            ui.update();
-
-        }
-     
         if(settings.barStyle === undefined){
             settings.barStyle = groover.utils.namedStyles.UICheckBox;
         }        
@@ -37,9 +25,6 @@
         // if not loading sprites then call uiReady manualy
 
         var ui = {
-            owner : owner,
-            name : name,
-            id : groover.utils.IDS.getID(),                        
             checked : settings.checked,
             setChecked : function (value){
                 if(this.checked !== value){
@@ -55,18 +40,11 @@
             },
             check : function(){this.setChecked(true);},
             uncheck : function(){this.setChecked(false);},
-            toolTip : settings.toolTip,
-            text : settings.text,
-            ready : false,
-            dirty : true,    
             hoverVal : 0,
             hover : true,
             holding : false,
-            canvas : undefined,
-            settings : settings,
             onchecked :settings.onchecked,
             onunchecked :settings.onunchecked,
-            location : undefined, 
             setup : function () {
                 if(this.canvas !== undefined){
                         this.location.set(settings.x,settings.y);
@@ -170,11 +148,9 @@
                     w = (l.w-tw-r)*e + r;
                     this.owner.render.drawBitmapPart(this.canvas,l.x+tw,l.y, l.w-w,0,w,l.h,l.alpha);
                 }
-                //this.owner.render.drawBitmapSize(this.canvas, l.x, l.y, l.w, l.h, l.alpha);
             }
         }
-        ui.mouse = UI.createMouseInterface(ui);
-        uiReady();
+        UI.addUIDefaults.bind(ui)(UI,owner,name,settings);
         return ui;
     }
     

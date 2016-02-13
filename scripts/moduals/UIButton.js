@@ -5,16 +5,7 @@
         if(owner === undefined){
             owner = UI;
         }
-        var uiReady = function () {
-            ui.ready = true;
-            ui.mouse = UI.createMouseInterface(ui);            
-            ui.location = ui.owner.createLocationInterface(ui, settings.group);
-            ui.setup();
-            if (settings.group !== undefined) {
-                settings.group.addUI(ui.location);
-            }
-            ui.update();
-        }
+
 
 
         if(settings.style === undefined){
@@ -38,23 +29,12 @@
         
 
         var ui = {
-            owner : owner,
-            name : name,
-            id : groover.utils.IDS.getID(),            
-            toolTip : settings.toolTip,
-            text : settings.text,
-            ready : false,
-            dirty : true,    
-            slideVal : 0,
-            canvas : undefined,
-            settings : settings,
             hoverVal : 1,
             hover : true,
             clicking : false,
             clickingVal : 1,
             holding : false,
             onclick :settings.onclick,
-            location : undefined, 
             release : function(){
                 if(settings.group !== undefined){
                     settings.group.release(this.id);
@@ -193,12 +173,10 @@
                 if(c > 0 ){
                     this.owner.render.drawBitmapPart(this.canvas,l.x,l.y, 0,h*2,w,h,l.alpha * c);
                 }
-                    
-                //this.owner.render.drawBitmapSize(this.canvas, l.x, l.y, l.w, l.h, l.alpha);
             }
         }
 
-        uiReady();
+        UI.addUIDefaults.bind(ui)(UI,owner,name,settings);
         return ui;
     }
     var configure = function(){

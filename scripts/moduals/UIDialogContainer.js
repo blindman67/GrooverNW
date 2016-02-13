@@ -5,37 +5,10 @@
         if(owner === undefined){
             owner = UI;
         }
-        if(settings.minWidth === undefined){
-            settings.minWidth = 200;
-        }
-        if(settings.minHeight === undefined){
-            settings.minHeight = 100;
-        }
-        var uiReady = function () {
-            ui.shapes = shapes; // expose for custom draw
-            ui.textRender = textRender; // expose for custom text
-            ui.ready = true;
-            ui.viewName = name+"View"+ui.id;
-            ui.location = ui.owner.createLocationInterface(ui, settings.group);
-            ui.setup();
-            if (settings.group !== undefined) {
-                settings.group.addUI(ui.location);
-            }
-        }        
+       
         var ui = {
-            owner : owner,
-            id : groover.utils.IDS.getID(),
-            name : name,
-            canvas : undefined,
-            width : settings.width !== undefined?settings.width:settings.minWidth,
-            height : settings.height !== undefined?settings.height:settings.minHeight,
-            x : settings.x,
-            y : settings.y,
-            text : undefined,
-            dirty : false,
             active : false,
             show : false,
-            group : settings.group,
             containerGroup : undefined,
             showTimer : 0,
             customUpdate : typeof settings.customUpdate === "function"?settings.customUpdate:undefined,
@@ -66,7 +39,7 @@
                         this.text = textRender.formatText(this.canvas.ctx,this.text);
                     }
                     this.width = Math.max(settings.minWidth,settings.width);
-                    this.height = Math.max(settings.minHeight,settings.width);
+                    this.height = Math.max(settings.minHeight,settings.height);
                     if(this.canvas.width !== this.width || this.canvas.height !== this.height){
                         this.canvas = this.owner.createCanvas(this.width,this.height);;                   
                     }                    
@@ -114,7 +87,6 @@
                     this.owner.owner.view.popView();
                     this.created = true;
                 }
-                //this.callback = callback;
                 this.show = true;
                 this.active = true;
                 this.dirty = true;;
@@ -162,8 +134,10 @@
                 }
             }
         };
-        ui.mouse = UI.createMouseInterface(ui);
-        uiReady();
+        ui.shapes = shapes; // expose for custom draw
+        ui.textRender = textRender; // expose for custom text
+        ui.viewName = name+"View"+ui.id;        
+        UI.addUIDefaults.bind(ui)(UI,owner,name,settings);
         return ui;
     }
     var configure = function(){

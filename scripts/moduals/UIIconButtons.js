@@ -5,13 +5,7 @@
             owner = UI;
         }
         uiReady = function () {
-            ui.ready = true;
-            ui.location = ui.owner.createLocationInterface(ui, settings.group);     
-            if (settings.group !== undefined) {
-                settings.group.addUI(ui.location);
-            }            
-            ui.setup();
-            ui.update();
+            UI.addUIDefaults.bind(ui)(UI,owner,name,settings)
         }
         UI.buttons = UI.bitmaps.startLoad("buttons",uiReady);
         for(i = 0; i < settings.icons.length; i++){
@@ -25,12 +19,6 @@
             icon.id = UI.MK.getHolderID();
         }
         ui = {
-            owner : owner,
-            name : name,
-            id : groover.utils.IDS.getID(),            
-            toolTip : "",
-            ready : false,
-            dirty : true,
             holding : false,            
             icons : settings.icons,  
             mouseDownOnIcon : 0, // holds the icon id of the icon on which the mouse went down
@@ -51,7 +39,6 @@
                     icon.position = this.location.add(icon.x,icon.y,icon.w,icon.h,icon.id,i);
                 }
             },
-            location : null, 
             update : function () {
                 if (this.ready) {
                     var m = this.mouse;
@@ -107,7 +94,6 @@
                 }
             }
         }
-        ui.mouse = UI.createMouseInterface(ui);
         return ui;
     }
     return {

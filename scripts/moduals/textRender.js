@@ -46,7 +46,6 @@
                 }
                 this.characterSizes[font+fontSize] = chars;
             }
-            console.log(this.characterSizes);
             return this.characterSizes[font+fontSize];
         },
         formatText : function(ctx,text){
