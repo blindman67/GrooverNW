@@ -45,20 +45,54 @@ function GifViewer(owner){
     this.createUI();
 }
 GifViewer.prototype.createColourDialog = function(){
+    var r,g,b,a
+    var count = 0;
+    var drawColour = function(dialog){
+        if(!dialog.updated){
+            return;
+        }
+        dialog.updated = false;
+        var can = dialog.canvas;
+        var c = can.ctx;
+        var st = groover.utils.namedStyles.colourSwatch;
+        if(count === 0){
+            r = dialog.group.getNamedUI("redSlide");
+            g = dialog.group.getNamedUI("greenSlide");
+            b = dialog.group.getNamedUI("blueSlide");
+            a = dialog.group.getNamedUI("alphaSlide");
+            count += 1;
+        }
+        log("h");
+        st.fillStyle = "rgba(";
+        st.fillStyle += Math.floor(r.value);
+        st.fillStyle += ",";
+        st.fillStyle += Math.floor(g.value)
+        st.fillStyle += ",";
+        st.fillStyle += Math.floor(b.value)
+        st.fillStyle += ",";
+        st.fillStyle += (a.value/255)
+        st.fillStyle += ")";
+        var ins = st.inset + st.lineWidth + 10;
+        dialog.shapes.drawRectangle(can, ins, ins + 40, can.width - ins * 2, 130 - ins * 2, st);
+    }   
+
     var UI = this.owner.ui;
     if(this.colourGroup === undefined){
+        groover.utils.styles.createDrawStyle("colourSwatch","rgba(255,0,0,1)", "black", 2,16, 0);
         this.colourGroup = this.owner.ui.createUI("UIGroup","colourGroup");
         this.colourDialog = UI.createUI("UIDialogContainer","colourDialog",{
             x:"center",y:"center",
             width : 400, height : 400,
             group : this.colourGroup,
             uiCreate : this.colourUI.bind(this),
+            customDisplay : drawColour,
         });
     }
     this.colourDialog.addUI("{AC{+{+{BColour Dialog Test!}}}}\n");
+    this.colourDialog.updated = true;
     
 }
-GifViewer.prototype.colourUI = function(group){   
+GifViewer.prototype.colourUI = function(owner){   
     var UI = this.owner.ui;
     var copy = groover.utils.language.objectCopyCombine;
     var sliderStyle = {
@@ -66,18 +100,21 @@ GifViewer.prototype.colourUI = function(group){
         handle : groover.utils.namedStyles.UIColourSliderHandle,
         numDisplay : groover.utils.namedStyles.UIColourSliderDisplay,
     }        
-    var yp = -300;
+    var yp = -200;
     var redSlider = {
         x : 10, y : yp, width: -10, height : 30,
         min : 0, max : 255,  value : 0,
         handleSpan : 32,
         decimalPlaces:0,digets:3,
         wheelStep : 6,            
-        group:group,
+        group:owner.group,
         ondrag : undefined,
         toolTip:"Red channel value",
         style : sliderStyle,
         styleID : groover.utils.IDS.getID(),
+        ondrag : function(){
+            owner.updated = true;
+        },
     }
     var greenSlider =  copy(redSlider,{y :yp+35,toolTip:"Green channel value"});
     var blueSlider =  copy(redSlider,{y :yp+70,toolTip:"Blue channel value"});
@@ -87,8 +124,10 @@ GifViewer.prototype.colourUI = function(group){
         x: 10,y: -10,height : 30, minWidth : 100,
         text : "  OK  ",
         toolTip :"Accept and close dialog",
-        onclick : undefined,
-        group:group,
+        onclick : function(){
+            owner.show = false;
+        },
+        group:owner.group,
     }
     var cancelButton =  copy(okButton,{x :-10,text : "Cancel", toolTip : "Ignor change an close."});
         
@@ -103,7 +142,12 @@ GifViewer.prototype.colourUI = function(group){
 
 
 GifViewer.prototype.createUI = function(){    
-    this.alert = this.owner.ui.createUI("UIAlerts","myAlert",{
+    var appDir = groover.appDescription.directory;
+    var iconDir = appDir + "\\icons\\";
+
+    var UI = this.owner.ui;
+    var copy = groover.utils.language.objectCopyCombine;    
+    this.alert = UI.createUI("UIAlerts","myAlert",{
             x:"center",y:"center",
             buttonStyles :{
                 button : groover.utils.namedStyles.UIAlertButton,
@@ -112,100 +156,83 @@ GifViewer.prototype.createUI = function(){
             },
         }
     );
+    // for testing 
     this.alertType = 0;
     
-    this.log =  this.owner.ui.createUI("UILogDisplay","Log",{pos:{x:0,y:0},displayLines:12,font:"14px Lucida Console",width:256});
-    this.testGroup = this.owner.ui.createUI("UIGroup","testGroup");
-    this.slider = this.owner.ui.createUI("UISlider","slider", {
-            min:0,
-            max:100,
-            value:0,
-            handleSpan : 0.01,
-            x:240, y:-8, width:-10,
-            decimalPlaces:2,
-            digets:3,
-            wheelStep : 0.25,            
-            group:this.testGroup,
+    // this still uses old UI logic and should be rewriten
+    this.log =  UI.createUI("UILogDisplay","Log",{pos : {x : 0, y : 0}, displayLines : 12,font : "14px Lucida Console", width : 256});
+    
+    // creates a UI group that all the main UI will be grouped in.
+    this.mainUI = UI.createUI("UIGroup","mainUI");
+    var sliderDetails = {
+            min : 0, max : 100, value : 0, handleSpan : 0.01,
+            x : 240, y : -8, width : -10,
+            decimalPlaces : 2, digits : 3, digets : 3,wheelStep : 0.25,            // digets and digit are the same need to remove digets when I get time
+            group : this.mainUI,
             ondrag : this.setPause.bind(this),
             toolTip:"Drag slider to set the time.\nUse the mouse wheel to\nstep quarter seconds." 
-         }
-    );
+    };
     var by = -86;
     var bys = 34;
-    this.fitViewButton = this.owner.ui.createUI( "UIButton","fitView",{
+    var fit = {
             x: 10,y: by,height : 30,
             text : "Fit",
             toolTip :"Resets the view to fit within the window.",
             onclick : this.fitView.bind(this),
-            group:this.testGroup,
-        }
-    )
+            group:this.mainUI,
+    }
     by-= bys;
-    this.nextFile = this.owner.ui.createUI("UIButton","nextFile",{
-            x: 10,y: by,height : 30,
-            text : "?",
-            toolTip :"Displays information about\nthe current gif.",
-            onclick : this.showInfo.bind(this),
-            group:this.testGroup,
-        }
-    )
-    by-= bys;    
-    var saveImages = this.saveGifAsImages.bind(this);
-    this.saveButton = this.owner.ui.createUI("UIButton","save",{
-            x: 10,y: by,height : 30,
-            text : "Save",
-            toolTip :"Save gif as a set of jpg images.",
-            onclick : this.saveAnimation.bind(this),
-            group:this.testGroup,
-        }
-    )
-    by-= bys;    
-    this.colourButton = this.owner.ui.createUI("UIButton","colourText",{
-            x: 10,y: by,height : 30,
-            text : "Color",
-            toolTip :"Text the dialalog container UI element",
-            onclick : this.createColourDialog.bind(this),
-            group:this.testGroup,
-        }
-    )
+    var fill = copy(fit,{y : by, text : "Fill", onclick : this.fillView.bind(this), toolTip :"Resets the view to fill the window."});
     by-= bys;
+    var info = copy(fit,{y : by, text : "?", onclick : this.showInfo.bind(this), toolTip :"Displays information about\nthe current gif."});
+    by-= bys;
+    var save = copy(fit,{y : by, text : "Save", onclick : this.saveAnimation.bind(this), toolTip :"Save gif as a set of jpg images."});
+    by-= bys;
+    var colour = copy(fit,{y : by, text : "Color", onclick : this.createColourDialog.bind(this), toolTip :"Text the dialalog container UI element"});
+    by-= bys;
+    var checkFade = copy(fit,{y : -50, text : "Use frame fade.", onclick : undefined, toolTip :"If checked this will add the next frame\nwith a part fade to smooth\ngifs with low frame rates."});
+    
+    this.slider = UI.createUI("UISlider","slider",sliderDetails);
+    UI.createUI("UIButton", "fitView", fit);
+    UI.createUI("UIButton", "fillView", fill);
+    UI.createUI("UIButton", "info"   , info);
+    UI.createUI("UIButton", "save"   , save);
+    UI.createUI("UIButton", "colour" , colour);
+    this.checkFade = UI.createUI( "UICheckBox", "checkBox1",checkFade);
+
     var bx = -35;
-    this.checkFade = this.owner.ui.createUI( "UICheckBox", "checkBox1", {
-            x: 10, y: -52, height : 30,
-            text : "Use frame fade.",
-            toolTip :"If checked this will add the next frame\nwith a part fade to smooth\ngifs with low frame rates.",
-            group:this.testGroup,
-        }
-    )
+    var h = 32;
+    var w = 40;
+    by = -12;
     var icons = [ {
-            filenames : ["icons\\prevOn.png","icons\\prevOff.png"],
-            x: bx+=45 , y : -12, w : 40, h : 32,cursor : "pointer",
+            filenames : [iconDir+"prevOn.png",iconDir+"prevOff.png"],
+            x : bx += 45 , y : by, w : w, h : h, cursor : "pointer",
             toolTip : "Load previouse gif",            
             onclick : this.prevGif.bind(this),
         },  {
-            filenames : ["icons\\speedSlowerOn.png","icons\\speedSlowerOff.png"],
-            x: bx += 45, y : -12, w : 40, h : 32,cursor : "pointer",
+            filenames : [iconDir+"speedSlowerOn.png",iconDir+"speedSlowerOff.png"],
+            x : bx += 45, y : by, w : w, h : h, cursor : "pointer",
             toolTip : "Decrease play speed\nor step back a frame",
             onclick : this.speedDown.bind(this),
         }, {
-            filenames : ["icons\\speedOn.png","icons\\speedOff.png"],
-            x: bx += 45, y : -12, w : 40, h : 32,cursor : "pointer",
+            filenames : [iconDir+"speedOn.png",iconDir+"speedOff.png"],
+            x : bx += 45, y : by, w : w, h : h, cursor : "pointer",
             toolTip : "Increase play speed\nor step forward a frame",
             onclick : this.speedUp.bind(this),
         }, {
-            filenames : ["icons\\nextOn.png","icons\\nextOff.png"],
-            x: bx += 45,y : -12,w : 40,h : 32,cursor : "pointer",
+            filenames : [iconDir+"nextOn.png",iconDir+"nextOff.png"],
+            x : bx += 45,y : by,w : w,h : h, cursor : "pointer",
             toolTip : "Load next gif",
             onclick : this.nextGif.bind(this),
         }, {
-            filenames : ["icons\\pauseOn.png","icons\\pauseOff.png","icons\\playOn.png","icons\\playOff.png"],
-            x: bx += 55,y : -12, w : 32, h : 32, cursor : "pointer",
+            filenames : [iconDir+"pauseOn.png",iconDir+"pauseOff.png",iconDir+"playOn.png",iconDir+"playOff.png"],
+            x : bx += 55,y : by, w : 32, h : h, cursor : "pointer",
             toolTip : "Click to toggle play and pause",
             onclick : this.togglePlay.bind(this),
         },
     ]
-    this.iconButtons = this.owner.ui.createUI("UIIconButtons","controls",{icons:icons,group:this.testGroup});
-    groover.utils.files.saveJson("UIStyle",groover.utils.namedStyles);
+    this.iconButtons = UI.createUI("UIIconButtons","controls",{icons:icons,group:this.mainUI});
+    //groover.utils.files.saveJson("UIStyle",groover.utils.namedStyles);
 }
 GifViewer.prototype.saveGifAsImages = function(button){
     if(button === "OK"){
@@ -221,10 +248,15 @@ GifViewer.prototype.fitView = function(){
         this.transform.fitView(-img.width/2,-img.height/2,img.width/2,img.height/2,"fit");
     }                
 }
+GifViewer.prototype.fillView = function(){
+   if(this.gifImage !== undefined){
+        var img = this.gifImage.image.frames[0].image;
+        this.transform.fitView(-img.width/2,-img.height/2,img.width/2,img.height/2,"fill");
+    }                
+}
 GifViewer.prototype.showInfo = function(){
     if(this.gifImage !== undefined){
         var str = "{+{+{B{ACGIF Image Info}}}}\n\n";
-        str += "Test super and sub script {BA{U1}{S2}} * {BX{S3}}\n";
         var filename  = path.parse(this.gifImage.filename);
         str += "{BFilename:}{F.}{AR'"+(filename.name +filename.ext)+ "'}\n";
         if(this.gifImage.image.comment !== ""){
@@ -252,9 +284,6 @@ GifViewer.prototype.saveAnimation = function(){
         }
     }                
 }
-    
-    
-    
 GifViewer.prototype.prevGif = function(){
     this.currentFile = (this.currentFile  + (this.fileList.length-1))%this.fileList.length;
     this.loadGif({path:this.fileList[this.currentFile],type:"image/gif"});                
@@ -325,7 +354,7 @@ GifViewer.prototype.lostView = function(){
     this.render = this.owner.render;  
     var xx = 10;
     var yy = this.view.height - 40;
-    this.testGroup.setup();  // redraw UIs
+    this.mainUI.setup();  // redraw UIs
 
     this.newView = true;
 }
@@ -697,12 +726,12 @@ GifViewer.prototype.display = function(){
         }
         //this.iconButtons.location.alpha = this.fadeUI;
         //this.slider.location.alpha = this.fadeUI;
-        this.testGroup.location.alpha = this.fadeUI;
+        this.mainUI.location.alpha = this.fadeUI;
         this.log.display();
         if(this.fadeUI > 0){
-            this.testGroup.mouse.isMouseOver();
-            this.testGroup.update();
-            this.testGroup.display();
+            this.mainUI.mouse.isMouseOver();
+            this.mainUI.update();
+            this.mainUI.display();
         }
         //this.iconButtons.update();
         //this.iconButtons.display();

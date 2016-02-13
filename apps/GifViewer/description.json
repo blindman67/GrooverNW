@@ -3,6 +3,7 @@
     "description" : "GrooverNW Application for viewing GIF images.",
     "version" : "1",
     "styles" : ["UIStyles.json"],
+    "icons" : "\\icons",
     "JavaScript" : {
          "scripts" : ["GifViewer.js"], 
          "moduals" : []                            

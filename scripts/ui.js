@@ -18,19 +18,20 @@ function UI(owner){
     }
     this.startLoad = function(ui){
 
-    }
-    
+    }    
     this.setupToolTip();
     if(groover.settings.frameControls){
         this.createFrameControls();
     }
 }
-
+// does nothing but requiered by groover
 UI.prototype.viewUpdated = function(){
     
 }
+// does nothing for the time being but requiered by groover
 UI.prototype.update = function(){
 }
+// display displays the tooltops, frame controls (drag window, min max etc) and the busy indicator.
 UI.prototype.display = function(){
     if(this.toolTip !== undefined && this.toolTip.ready){
         if(!this.toolTip.owner.over || this.MK.BR !== 0 || this.MK.w !== 0 || this.toolTip.owner.owner.location.alpha === 0){
@@ -69,7 +70,7 @@ UI.prototype.display = function(){
         }
     }
 }
-
+// when UI requiered media has loaded creates the frame control and flags its self as ready.
 UI.prototype.mediaReady = function(){
     if(this.frameControl !== undefined){
         this.frameControl.setup();
@@ -77,10 +78,12 @@ UI.prototype.mediaReady = function(){
     this.ready = true;
     log("UI ready"); 
 }
+// loads the busy icon.
 UI.prototype.loadMedia = function(){
     this.icons = this.bitmaps.startLoad("icons",this.mediaReady.bind(this));
     this.bitmaps.load("icons","icons/busy.png","busy");
 }
+// creates frame controls.
 UI.prototype.createFrameControls = function(){
     var frameSpriteDesc = {
         spriteCutter:{
@@ -109,7 +112,6 @@ UI.prototype.createFrameControls = function(){
             width : groover.win.width,
             height : groover.win.height,
         },
-        
         cursors : ["pointer","pointer","pointer","pointer","move"],
         setup : function(){
             var w = this.sprites.image.sprites[0].w;
@@ -142,7 +144,6 @@ UI.prototype.createFrameControls = function(){
             groover.win.width = groover.screens[0].work_area.width;
             groover.win.height = groover.screens[0].work_area.height;
         },
-            
         update : function(){
             var mx,my,newPy,newPx,w,x,i
             if(this.over){
@@ -162,7 +163,6 @@ UI.prototype.createFrameControls = function(){
                     }
                     groover.win.x = newPx;
                     groover.win.y = newPy;
-                      
                 }else{ 
                     if(this.timer <1){
                         this.timer += 0.1;
@@ -180,7 +180,6 @@ UI.prototype.createFrameControls = function(){
                         }
                         x -= w;
                     }     
-                    
                     this.owner.MK.requestCursor(this.cursors[this.mouseOverIcon],this.id);
                     if(this.mouseOverIcon === 0 && this.owner.MK.B1){
                         nw.App.quit();
@@ -263,7 +262,6 @@ UI.prototype.createFrameControls = function(){
                 r.drawSpriteAWH(img,0,0,0,x+w,this.height,a); // 
             }
         }
-
     }
 }
 UI.prototype.setupToolTip = function(){
@@ -285,29 +283,35 @@ UI.prototype.setupToolTip = function(){
                 return;
             }
             this.owner = owner;
-            text = text.split("\n");
             c = this.canvas.ctx;
             c.font = this.fontSize + "px "+this.font;
             c.textBaseline = "hanging";
             c.fillStyle = this.background;
             c.strokeStyle = this.colour;
             c.clearRect(0,0,this.maxWidth,this.maxHeight);
-            maxW = 0;
-            for(i = 0; i < text.length; i ++){
-                maxW = Math.max(maxW,c.measureText(text[i]).width);
+            if( text.text === undefined ){
+                text = text.split("\n");
+                maxW = 0;
+                for(i = 0; i < text.length; i ++){
+                    maxW = Math.max(maxW,c.measureText(text[i]).width);
+                }
+                height = text.length * (this.fontSize +2) + 4;
+                c.fillRect(2,2,maxW + 8, height);
+                c.strokeRect(2,2,maxW + 8, height);
+                c.fillStyle = this.colour;
+                for(i = 0; i < text.length; i ++){
+                    c.fillText(text[i],5,i*(this.fontSize +2) + 6);
+                }
+                this.width = maxW + 8 + 4;
+                this.height = height + 8;
+            }else{
+                groover.code.moduals.textRender.fillText(c,text,4,4,"left");
+                this.width = text.width;
+                this.height = text.height;                
             }
-            height = text.length * (this.fontSize +2) + 4;
-            c.fillRect(2,2,maxW + 8, height);
-            c.strokeRect(2,2,maxW + 8, height);
-            c.fillStyle = this.colour;
-            for(i = 0; i < text.length; i ++){
-                c.fillText(text[i],5,i*(this.fontSize +2) + 6);
-            }
-             this.width = maxW + 8 + 4;
-             this.height = height + 8;
-             this.ready = true;
-             this.avalible = false;
-             this.timer = 0;
+            this.ready = true;
+            this.avalible = false;
+            this.timer = 0;
         },
         free : function(){
             this.ready = false;
@@ -319,7 +323,7 @@ UI.prototype.setupToolTip = function(){
             var a,x,y;
             if(this.ready){
                 a = 1;
-                x = this.mouse.x + 5;
+                x = this.mouse.x + 8;
                 y = this.mouse.y + 8;
                 if(x + this.width > this.view.width){
                     x = this.mouse.x - 5 - this.width;
@@ -341,9 +345,23 @@ UI.prototype.setupToolTip = function(){
     }
     this.toolTip.canvas = this.createCanvas(this.toolTip.maxWidth,this.toolTip.maxHeight);
 }
-
+// Creates a loaction abstraction for a control.
+// Locations are relative to a view. See view.js
+// Locations do not hold the view object but just the name of the associated view.
+// to set the view call set(x,y,w,h);
+// all the arguments are optional and the location will do its best to place the location with
+// the current known data.
+// x >= 0 sets the left position
+// x < 0 sets the right position from the right edge of the view
+// x = "center" centers the control on the view.
+// x = undefined will set the next avalible position for thr control. NOT YET IMPLEMENTED
+// y same as x
+// w for width
+// w >= 0 sets the width to w
+// w < 0 set the width to make the right of the control w pixels from the right of the view
+// w = undefined sets the width to the controls canvas.width.
+// h is height and same aas w
 UI.prototype.createLocationInterface = function(owner,group){
-
     return {
         owner : owner,
         group : group,
@@ -372,7 +390,6 @@ UI.prototype.createLocationInterface = function(owner,group){
                 position.w = this.w;
                 position.h = this.h;                
             }
-            
             if(this.group !== undefined){
                 this.group.recaculateBounds();
             }
@@ -498,6 +515,21 @@ UI.prototype.createLocationInterface = function(owner,group){
         list : undefined,
     };    
 }
+// General mouse interface for a UI control
+// Each uicontrol will get a App unique ID when the mouse moves over a control the mouse will request 
+// that it has private access to the mouse. If no other control has the private access the control is 
+// granted private access. When the mouse moves off the control the mouse will release the private acess.
+// Use holdMouse and releaseMouse to hold and release the mouse. While the private access is held no other
+// UI controls can get access to the mouse. This is to allow  for controls where the mouse will move off the 
+// control yet still have active access to imput. 
+
+// Methods
+// deactivate and activate turn off and on the mouse interface for the UI control
+// holdMouse locks the mouse to the UI control.
+// releaseMouse unlocks the mouse and rechecks if the mouse is over the controllers
+// isMouseOver checks if mouse if over. IF control is part of a group the mouse must be over the group as well
+//             Having a control outside the group will make it invisible to the mouse
+//             Not checking groups by call isMouseOver will also make the controls invisible to the mouse.
 UI.prototype.createMouseInterface = function(owner,canHoldMouse){
     return {
         owner : owner,
@@ -518,7 +550,6 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
                 this.mouse.mousePrivate = 0
             }
             this.inactive = true;
-
         },
         activate : function(){
             this.inactive = false;
@@ -684,6 +715,15 @@ UI.prototype.createMouseInterface = function(owner,canHoldMouse){
         },      
     }
 }
+// Creates a UI group.
+// use group = UI.createUI("UIGroup","name") to create a group
+// to add a UI to a group add {group:group} to the settings obj
+// eg var button = UI.createUI("UIButton","myButton",{group : group};
+// you can then update, display, setup and call mouse functions from the group
+// eg group.display() // displays all UI controls in the group.
+// eg group.mouseFunction("deactivate"); // calls the mouse function deactivate on all controls in the group.
+// Call recaculateBounds if you move UI controls.
+// getNamedUI(name) returns the control with the name name. or undefined if not found;
 UI.prototype.UIGroup = function(name,settings,owner){
     var UI = this;
     if(settings === undefined){
@@ -743,6 +783,15 @@ UI.prototype.UIGroup = function(name,settings,owner){
                 }
             }
             recalculateBounds();
+        },
+        getNamedUI : function(name){
+            var i, len;
+            len = this.items.length;
+            for(i = 0; i < len; i++){
+                if(this.items[i].owner.name === name){
+                    return this.items[i].owner;
+                }
+            }
         },
         recaculateBounds : function(){
             var i, len, xm, xM, ym, yM,item;
@@ -841,6 +890,9 @@ UI.prototype.UIStub = function(name,data,owner){
     ui.location.set = groover.code.moduals.stub;
     return ui;
 }
+// creates a new UI control.
+// Will load the modual if needed and create the control
+// Returns the control. If the modual can not be found a UIStub is returned. This is for develmopment 
 UI.prototype.createUI = function(UIType,name,settings,owner){
     if(owner === undefined){
         owner = this;

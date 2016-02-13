@@ -1,4 +1,4 @@
-(function(){  // **MODUAL** code will have use strit prefixed
+(function(){  // **MODUAL** code will have use strict prefixed
     // important do not add anything above this line. Modual loading adds (use strict) and accepts the returned value of this function
     
     // renders formated text
@@ -31,7 +31,8 @@
         measureCharacters : function(ctx){  // chars[0] is font size
             var font = ctx.font.split("px").pop().trim().replace(/ /g,"");
             var fontSize = Number(ctx.font.split("px")[0]);
-            if(this.characterSizes[font] === undefined){
+            
+            if(this.characterSizes[font+fontSize] === undefined){
                 var chars = [];
                 for(var i = 32; i < 128; i ++){
                     var w = ctx.measureText(String.fromCharCode(i)).width;
@@ -43,9 +44,10 @@
                     }
                     chars.push(w);                            
                 }
-                this.characterSizes[font] = chars;
+                this.characterSizes[font+fontSize] = chars;
             }
-            return this.characterSizes[font];
+            console.log(this.characterSizes);
+            return this.characterSizes[font+fontSize];
         },
         formatText : function(ctx,text){
             var aligned = [];

@@ -140,6 +140,7 @@ groover.code = {
         var error = false;
         var modual = "";
         var appDir = this.applicationDir;
+        appDescription.directory = appDir + "\\" +name;
         appDescription.JavaScript.scripts.forEach(function(fName){
             filename = appDir + "\\" +name+"\\"+ fName;
             var code = groover.utils.files.loadText(filename);

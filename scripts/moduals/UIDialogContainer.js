@@ -12,6 +12,8 @@
             settings.minHeight = 100;
         }
         var uiReady = function () {
+            ui.shapes = shapes; // expose for custom draw
+            ui.textRender = textRender; // expose for custom text
             ui.ready = true;
             ui.viewName = name+"View"+ui.id;
             ui.location = ui.owner.createLocationInterface(ui, settings.group);
@@ -33,6 +35,8 @@
             active : false,
             show : false,
             showTimer : 0,
+            customUpdate : typeof settings.customUpdate === "function"?settings.customUpdate:undefined,
+            customDisplay : typeof settings.customDisplay === "function"?settings.customDisplay:undefined,
             viewName :  undefined,
             created : false,
             style : groover.utils.namedStyles.UIDialogStyle,
@@ -82,6 +86,9 @@
                 if(this.text !== undefined){
                     textRender.fillText(this.canvas.ctx,this.text,this.width/2,0,"center");
                 }
+                if(typeof settings.redraw === "function"){
+                    settings.redraw(this);
+                }
                 this.dirty = false;
             },
             addUI : function(text){
@@ -98,11 +105,8 @@
                     this.group = this.owner.createUI("UIGroup","Dialog"+this.id);
                     this.owner.owner.view.pushViewByName(this.viewName);
                     if(typeof settings.uiCreate === "function"){
-                        
-                        settings.uiCreate(this.group)                        
-
+                        settings.uiCreate(this,this.group)
                     }
-      
                     this.owner.owner.view.popView();
                     this.created = true;
                 }
@@ -116,7 +120,10 @@
             update: function(){
                 if(this.active){                    
                     this.group.mouse.isMouseOver();
-                    this.group.update();             
+                    this.group.update();            
+                    if(this.customUpdate !== undefined){
+                        this.customUpdate(this);
+                    }
                 }
             },
             display : function(){
@@ -142,6 +149,9 @@
                     var a = mMath.easeInOut(this.showTimer,2);
                     this.group.location.alpha = a;
                     var l = this.location;
+                    if(this.customDisplay !== undefined){
+                        this.customDisplay(this);
+                    }
                     this.owner.render.drawBitmapA(this.canvas,l.x,l.y,l.alpha*a);
                     this.group.display();
                 }

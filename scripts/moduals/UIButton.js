@@ -7,15 +7,16 @@
         }
         var uiReady = function () {
             ui.ready = true;
+            ui.mouse = UI.createMouseInterface(ui);            
             ui.location = ui.owner.createLocationInterface(ui, settings.group);
             ui.setup();
             if (settings.group !== undefined) {
                 settings.group.addUI(ui.location);
             }
             ui.update();
-           
-
         }
+
+
         if(settings.style === undefined){
             settings.style = groover.utils.namedStyles.UIButton;
         }        
@@ -34,6 +35,7 @@
         settings.fontStyle.textAlign = "center";
         settings.fontStyle.textBaseline = "middle";
 
+        
 
         var ui = {
             owner : owner,
@@ -68,7 +70,7 @@
             },
             setup : function () {
                 if(this.canvas !== undefined){
-                        this.location.set(settings.x,settings.y,undefined,settings.height);
+                    this.location.set(settings.x,settings.y,undefined,settings.height);
                 }else{
                     this.canvas = this.owner.createCanvas(10,settings.height);
                     this.canvas.ctx.font = settings.fontStyle.fontSize + "px "+ settings.fontStyle.font;                        
@@ -195,7 +197,7 @@
                 //this.owner.render.drawBitmapSize(this.canvas, l.x, l.y, l.w, l.h, l.alpha);
             }
         }
-        ui.mouse = UI.createMouseInterface(ui);
+
         uiReady();
         return ui;
     }
