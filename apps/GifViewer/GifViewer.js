@@ -44,9 +44,12 @@ function GifViewer(owner){
     this.fileList = [];
     this.createUI();
 }
-GifViewer.prototype.createColourDialog = function(){
-    var r,g,b,a
-    var count = 0;
+
+// create and display colour dialog 
+// also provides the custom draw function for the dialog to display the colour swatch
+GifViewer.prototype.createColourDialog = function(rVal,gVal,bVal,alphaVal){
+    var r,g,b,a,count;
+    count = 0;
     var drawColour = function(dialog){
         if(!dialog.updated){
             return;
@@ -55,14 +58,7 @@ GifViewer.prototype.createColourDialog = function(){
         var can = dialog.canvas;
         var c = can.ctx;
         var st = groover.utils.namedStyles.colourSwatch;
-        if(count === 0){
-            r = dialog.group.getNamedUI("redSlide");
-            g = dialog.group.getNamedUI("greenSlide");
-            b = dialog.group.getNamedUI("blueSlide");
-            a = dialog.group.getNamedUI("alphaSlide");
-            count += 1;
-        }
-        log("h");
+        var stO = groover.utils.namedStyles.colourSwatchOld;
         st.fillStyle = "rgba(";
         st.fillStyle += Math.floor(r.value);
         st.fillStyle += ",";
@@ -72,13 +68,22 @@ GifViewer.prototype.createColourDialog = function(){
         st.fillStyle += ",";
         st.fillStyle += (a.value/255)
         st.fillStyle += ")";
+        if(count === 0){
+            count += 1;
+            stO.fillStyle = st.fillStyle;
+            
+        }
+            
+        var ins = stO.inset + stO.lineWidth + 10;
+        dialog.shapes.drawRectangle(can, ins, ins + 40, can.width - ins * 2, 130 - ins * 2, stO);
         var ins = st.inset + st.lineWidth + 10;
         dialog.shapes.drawRectangle(can, ins, ins + 40, can.width - ins * 2, 130 - ins * 2, st);
     }   
 
     var UI = this.owner.ui;
     if(this.colourGroup === undefined){
-        groover.utils.styles.createDrawStyle("colourSwatch","rgba(255,0,0,1)", "black", 2,16, 0);
+        groover.utils.styles.createDrawStyle("colourSwatchOld","rgba(255,0,0,1)", "black", 2,16, 0);
+        groover.utils.styles.createDrawStyle("colourSwatch","rgba(255,0,0,1)", "black", 0,16, 20);
         this.colourGroup = this.owner.ui.createUI("UIGroup","colourGroup");
         this.colourDialog = UI.createUI("UIDialogContainer","colourDialog",{
             x:"center",y:"center",
@@ -88,12 +93,26 @@ GifViewer.prototype.createColourDialog = function(){
             customDisplay : drawColour,
         });
     }
-    this.colourDialog.addUI("{AC{+{+{BColour Dialog Test!}}}}\n");
+    // returns the containing group.
+    var cGroup = this.colourDialog.addUI("{AC{+{+{BColour Dialog Test!}}}}\n");
     this.colourDialog.updated = true;
-    
+    // get the sliders by name
+    r = cGroup.getNamedUI("redSlide");
+    g = cGroup.getNamedUI("greenSlide");
+    b = cGroup.getNamedUI("blueSlide");
+    a = cGroup.getNamedUI("alphaSlide");   
+    // set the values if they are avalible
+    r.setValue(rVal);
+    g.setValue(gVal);
+    b.setValue(bVal);
+    a.setValue(alphaVal);
+    count = 0;
 }
+
+// Function to create colour dialog controls.
 GifViewer.prototype.colourUI = function(owner){   
     var UI = this.owner.ui;
+    var group = owner.containerGroup;
     var copy = groover.utils.language.objectCopyCombine;
     var sliderStyle = {
         bar : groover.utils.namedStyles.UIColourSliderBar,
@@ -107,7 +126,7 @@ GifViewer.prototype.colourUI = function(owner){
         handleSpan : 32,
         decimalPlaces:0,digets:3,
         wheelStep : 6,            
-        group:owner.group,
+        group:group,
         ondrag : undefined,
         toolTip:"Red channel value",
         style : sliderStyle,
@@ -119,15 +138,21 @@ GifViewer.prototype.colourUI = function(owner){
     var greenSlider =  copy(redSlider,{y :yp+35,toolTip:"Green channel value"});
     var blueSlider =  copy(redSlider,{y :yp+70,toolTip:"Blue channel value"});
     var alphaSlider =  copy(redSlider,{y :yp+105,toolTip:"Alpha channel value"});
-    
+    var t = this;
     var okButton = {
         x: 10,y: -10,height : 30, minWidth : 100,
-        text : "  OK  ",
+        text : "OK",
         toolTip :"Accept and close dialog",
         onclick : function(){
+            if(this.text === "OK"){ 
+                t.redCandy = group.getNamedUI("redSlide").value;
+                t.greenCandy = group.getNamedUI("greenSlide").value;
+                t.blueCandy = group.getNamedUI("blueSlide").value;
+                setTimeout(t.createCandy.bind(t),0);
+            }
             owner.show = false;
         },
-        group:owner.group,
+        group:group,
     }
     var cancelButton =  copy(okButton,{x :-10,text : "Cancel", toolTip : "Ignor change an close."});
         
@@ -188,7 +213,7 @@ GifViewer.prototype.createUI = function(){
     by-= bys;
     var save = copy(fit,{y : by, text : "Save", onclick : this.saveAnimation.bind(this), toolTip :"Save gif as a set of jpg images."});
     by-= bys;
-    var colour = copy(fit,{y : by, text : "Color", onclick : this.createColourDialog.bind(this), toolTip :"Text the dialalog container UI element"});
+    var colour = copy(fit,{y : by, text : "Color", onclick : this.openColourDialog.bind(this), toolTip :"Text the dialalog container UI element"});
     by-= bys;
     var checkFade = copy(fit,{y : -50, text : "Use frame fade.", onclick : undefined, toolTip :"If checked this will add the next frame\nwith a part fade to smooth\ngifs with low frame rates."});
     
@@ -233,6 +258,10 @@ GifViewer.prototype.createUI = function(){
     ]
     this.iconButtons = UI.createUI("UIIconButtons","controls",{icons:icons,group:this.mainUI});
     //groover.utils.files.saveJson("UIStyle",groover.utils.namedStyles);
+}
+
+GifViewer.prototype.openColourDialog = function(button){    
+    this.createColourDialog(this.redCandy,this.greenCandy,this.blueCandy,255);
 }
 GifViewer.prototype.saveGifAsImages = function(button){
     if(button === "OK"){
@@ -362,6 +391,12 @@ GifViewer.prototype.lostView = function(){
 // draws a nice and way over kill welcome screen.
 GifViewer.prototype.iconsAvaliable = function(imageGroup){
     this.icons = imageGroup;
+    this.createCandy();
+    this.ready = true;
+    log("Viewer started");
+
+}    
+GifViewer.prototype.createCandy = function(){
     var text = groover.appDescription.settings.welcomeName ? groover.appDescription.settings.welcomeName:"GIF GROOVER!";
     var text1 = groover.appDescription.settings.welcomeMessage ? groover.appDescription.settings.welcomeMessage:"Drag and drop your groovey GIFs here...";;
     var h = this.candy.image.height;
@@ -377,9 +412,16 @@ GifViewer.prototype.iconsAvaliable = function(imageGroup){
         grA
     );
     var r,g,b,rr,gg,bb,yy,xx,sx,sy,gr;
-    r = mMath.randI(150,260);
-    g = mMath.randI(150,260);
-    b = mMath.randI(150,260);
+    if(this.redCandy === undefined){
+        this.redCandy = r = mMath.randI(150,260);
+        this.greenCandy = g = mMath.randI(150,260);
+        this.blueCandy = b = mMath.randI(150,260);
+    }else{
+        r = this.redCandy;
+        g = this.greenCandy;
+        b = this.blueCandy;
+        
+    }
     rr = mMath.randI(150);
     gg = mMath.randI(150);
     bb = mMath.randI(150);
@@ -463,8 +505,7 @@ GifViewer.prototype.iconsAvaliable = function(imageGroup){
     this.candy.image.ctx.fillText(text1,w/2,h/2+50);
     this.candy.image.ctx.fillText(text1,w/2,h/2+50);
     this.candy.image.ctx.globalCompositeOperation = "source-over"
-    this.ready = true;
-    log("Viewer started");
+
 
   
 }

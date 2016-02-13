@@ -198,7 +198,8 @@
             if (ctx.fillStyle !== "" && !(ctx.fillStyle === "rgba(0,0,0,0)")) {
                 ctx.fill();
             }
-            if(ctx.lineWidth !== "0" && ctx.lineWidth !== 0){
+            
+            if(ctx.lineWidth !== 0.01){
                 ctx.stroke();
             }            
         },

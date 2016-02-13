@@ -9,7 +9,6 @@
         
         // function to start the UI
         var uiReady = function () {
-            log("Slider start");
             ui.ready = true;
             ui.location = ui.owner.createLocationInterface(ui, settings.group);
             ui.setup();
@@ -17,7 +16,6 @@
                 settings.group.addUI(ui.location);
             }
             ui.update();
-            log("Slider end");
         }
 
         // check for styles 
@@ -113,12 +111,6 @@
         }
         settings.fontWidth = maxWidth+2;        
         
-        
-        
-
-
-        
-
         var ui = {
             owner : owner,
             name : name,
@@ -156,6 +148,16 @@
                 this.max = max;
                 this.setHandleWidth(this.handleSpan);
             }, 
+            setValue : function(value){
+                if(typeof value !== "number"){
+                    if(isNaN(value)){
+                        return;
+                    }
+                    value = Number(value);
+                }
+                this.value = Math.min(this.max,Math.max(this.min,value));
+                this.dirty = true;
+            },                
             setup : function () {
                 this.numWidth = (settings.digets + 1) * settings.fontWidth;
                 if(settings.decimalPlaces > 0){
@@ -167,9 +169,7 @@
                     this.canvas = this.owner.createCanvas(this.location.w,this.location.h);
                 }
                 this.setHandleWidth(this.handleSpan);
-                //this.handleWidth = this.handle.image.width;
                 this.dirty = true;  // flag as dirty so it is redrawn
-                log("Slider","YELLOW");
             },
             redraw : function(){
                 var bar = this.bar.image;
@@ -199,25 +199,21 @@
                 var extraX = 0;
                 for(var i = 0 ; i < this.digets ; i++){
                     if(i+extra > num.length){
-                        rend.drawSpriteA(img, 0, w-nw + 10 + settings.fontWidth * i+extraX,0,1)
-                        
+                        rend.drawSpriteA(img, 0, w-nw + 10 + settings.fontWidth * i+extraX,0,1);
                     }else{
                         if(num[i+extra] === "."){
-                            rend.drawSpriteA(img, 10, w-nw + 10 + settings.fontWidth * i+extraX,0,1)
+                            rend.drawSpriteA(img, 10, w-nw + 10 + settings.fontWidth * i+extraX,0,1);
                             extra += 1;
                             extraX += 10;
                         }
-                            
                         rend.drawSpriteA(img, num.charCodeAt(i+extra)-48, w-nw + 10 + settings.fontWidth * i + extraX,0,1)
                     }
                 }            
                 var pw = hdl.sprites[0].w;
-            
                 rend.drawSpriteA(hdl,0, pos-this.handleWidth/2,0, 1);
                 rend.drawSpriteAW(hdl,1, pos-this.handleWidth/2+pw, 0,this.handleWidth-pw*2, 1);
                 rend.drawSpriteA(hdl,2, pos+this.handleWidth/2-pw, 0, 1);
                 rend.popCTX();
-              
                 this.dirty = false;
             },
             update : function () {
@@ -225,7 +221,6 @@
                     var m = this.mouse;
                     m.isMouseOver();
                     var rend = this.owner.render;
-                    
                     var c = this.canvas.ctx;
                     var w = this.canvas.width - (this.numWidth + this.handleWidth);
                     var img = this.sprites.image;
@@ -244,7 +239,6 @@
                                 this.value = ((pos -this.handleWidth/2) /w) * (this.max-this.min) + this.min;
                                 this.value = Math.min(this.max,Math.max(this.min,this.value));
                                 pos = Math.round(((this.value - this.min) / (this.max - this.min)) * w  + this.handleWidth/2);
-                                
                             }
                         }else{
                             if(m.x > pos- this.handleWidth/2 && m.x <= pos + this.handleWidth/2){
@@ -278,7 +272,6 @@
                                 m.mouse.w = 0;
                                 this.value = Math.min(this.max,Math.max(this.min,this.value));
                             }
-                                
                         }
                     }
                     if(this.value !== this.oldValue){

@@ -480,7 +480,11 @@ groover.utils.styles = {
     assignToContext : function ( ctx, style) {
         ctx.fillStyle    = style.fillStyle;
         ctx.strokeStyle  = style.strokeStyle;
-        ctx.lineWidth    = style.lineWidth;
+        if(style.lineWidth === 0){
+            ctx.lineWidth    = 0.01;
+        }else{
+            ctx.lineWidth    = style.lineWidth;
+        }
         ctx.lineJoin     = style.lineJoin ;
         ctx.lineCap      = style.lineCap;
         ctx.font         = style.fontSize + "px "+style.font;
@@ -499,7 +503,11 @@ groover.utils.styles = {
     assignDrawToContext : function ( ctx, style) {
         ctx.fillStyle    = style.fillStyle;
         ctx.strokeStyle  = style.strokeStyle;
-        ctx.lineWidth    = style.lineWidth;
+        if(style.lineWidth === 0){
+            ctx.lineWidth    = 0.01;
+        }else{
+            ctx.lineWidth    = style.lineWidth;
+        }
         ctx.lineJoin     = style.lineJoin ;
         ctx.lineCap      = style.lineCap;
         ctx.miterLimit   = style.miterLimit;

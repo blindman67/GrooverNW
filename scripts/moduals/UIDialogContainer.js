@@ -25,6 +25,7 @@
         var ui = {
             owner : owner,
             id : groover.utils.IDS.getID(),
+            name : name,
             canvas : undefined,
             width : settings.width !== undefined?settings.width:settings.minWidth,
             height : settings.height !== undefined?settings.height:settings.minHeight,
@@ -34,6 +35,8 @@
             dirty : false,
             active : false,
             show : false,
+            group : settings.group,
+            containerGroup : undefined,
             showTimer : 0,
             customUpdate : typeof settings.customUpdate === "function"?settings.customUpdate:undefined,
             customDisplay : typeof settings.customDisplay === "function"?settings.customDisplay:undefined,
@@ -101,11 +104,12 @@
                     this.text = text;
                 }
                 this.setup();
-                if(this.group === undefined){
-                    this.group = this.owner.createUI("UIGroup","Dialog"+this.id);
+                if(this.containerGroup === undefined){
+                    this.containerGroup = this.owner.createUI("UIGroup","DialogControls"+this.id);
                     this.owner.owner.view.pushViewByName(this.viewName);
                     if(typeof settings.uiCreate === "function"){
-                        settings.uiCreate(this,this.group)
+                        settings.uiCreate(this,this.containerGroup);
+                        log("khlslskhslkh");
                     }
                     this.owner.owner.view.popView();
                     this.created = true;
@@ -114,13 +118,14 @@
                 this.show = true;
                 this.active = true;
                 this.dirty = true;;
-                this.group.mouseFunction("deactivate");
-                this.group.recaculateBounds();
+                this.containerGroup.mouseFunction("deactivate");
+                this.containerGroup.recaculateBounds();
+                return this.containerGroup;
             },            
             update: function(){
                 if(this.active){                    
-                    this.group.mouse.isMouseOver();
-                    this.group.update();            
+                    this.containerGroup.mouse.isMouseOver();
+                    this.containerGroup.update();            
                     if(this.customUpdate !== undefined){
                         this.customUpdate(this);
                     }
@@ -135,25 +140,25 @@
                         this.showTimer += 0.08;
                         if(this.showTimer > 1){
                             this.showTimer = 1;
-                            this.group.mouseFunction("activate");
+                            this.containerGroup.mouseFunction("activate");
                         }
                     }else
                     if(!this.show && this.showTimer > 0){
                         this.showTimer -= 0.08;
                         if(this.showTimer <= 0){
                             this.active = false;
-                            this.group.mouseFunction("deactivate");
+                            this.containerGroup.mouseFunction("deactivate");
                             this.showTimer = 0;
                         }
                     }
                     var a = mMath.easeInOut(this.showTimer,2);
-                    this.group.location.alpha = a;
+                    this.containerGroup.location.alpha = a;
                     var l = this.location;
                     if(this.customDisplay !== undefined){
                         this.customDisplay(this);
                     }
                     this.owner.render.drawBitmapA(this.canvas,l.x,l.y,l.alpha*a);
-                    this.group.display();
+                    this.containerGroup.display();
                 }
             }
         };
