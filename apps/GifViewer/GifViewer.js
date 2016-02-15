@@ -51,9 +51,6 @@ GifViewer.prototype.createColourDialog = function(rVal,gVal,bVal,alphaVal){
     var r,g,b,a,count;
     count = 0;
     var drawColour = function(dialog){
-        if(!dialog.updated){
-            return;
-        }
         dialog.updated = false;
         var can = dialog.canvas;
         var c = can.ctx;
@@ -75,9 +72,9 @@ GifViewer.prototype.createColourDialog = function(rVal,gVal,bVal,alphaVal){
         }
             
         var ins = stO.inset + stO.lineWidth + 10;
-        dialog.shapes.drawRectangle(can, ins, ins + 40, can.width - ins * 2, 130 - ins * 2, stO);
+        dialog.shapes.drawRectangle(can, ins, ins + 55, can.width - ins * 2, 105 - ins * 2, stO);
         var ins = st.inset + st.lineWidth + 10;
-        dialog.shapes.drawRectangle(can, ins, ins + 40, can.width - ins * 2, 130 - ins * 2, st);
+        dialog.shapes.drawRectangle(can, ins, ins + 55, can.width - ins * 2, 105 - ins * 2, st);
     }   
 
     var UI = this.owner.ui;
@@ -87,14 +84,14 @@ GifViewer.prototype.createColourDialog = function(rVal,gVal,bVal,alphaVal){
         this.colourGroup = this.owner.ui.createUI("UIGroup","colourGroup");
         this.colourDialog = UI.createUI("UIDialogContainer","colourDialog",{
             x:"center",y:"center",
-            width : 400, height : 400,
+            width : 400, height : 300,
             group : this.colourGroup,
             uiCreate : this.colourUI.bind(this),
-            customDisplay : drawColour,
+            redraw : drawColour,
         });
     }
     // returns the containing group.
-    var cGroup = this.colourDialog.addUI("{AC{+{+{BColour Dialog Test!}}}}\n");
+    var cGroup = this.colourDialog.addUI("{AC{+{+{BColour Dialog Test!}}}}\n{-{AC{#F00Red:}{MredValue:255} {#0F0Green:}{MgreenValue:255} {#00FBlue:}{MblueValue:255} {#888Alpha:}{MalphaValue:255}}}\n");
     this.colourDialog.updated = true;
     // get the sliders by name
     r = cGroup.getNamedUI("redSlide");
@@ -106,6 +103,10 @@ GifViewer.prototype.createColourDialog = function(rVal,gVal,bVal,alphaVal){
     g.setValue(gVal);
     b.setValue(bVal);
     a.setValue(alphaVal);
+    this.colourDialog.text.marked.redValue = Math.floor(rVal);
+    this.colourDialog.text.marked.greenValue = Math.floor(gVal);
+    this.colourDialog.text.marked.blueValue = Math.floor(bVal);
+    this.colourDialog.text.marked.alphaValue = Math.floor(alphaVal);
     count = 0;
 }
 
@@ -119,28 +120,36 @@ GifViewer.prototype.colourUI = function(owner){
         handle : groover.utils.namedStyles.UIColourSliderHandle,
         numDisplay : groover.utils.namedStyles.UIColourSliderDisplay,
     }        
-    var yp = -200;
+    var yp = -120;
+    var ySpace = 22;
     var redSlider = {
-        x : 10, y : yp, width: -10, height : 30,
+        x : 10, y : yp, width: -10, height : ySpace - Math.floor(ySpace *0.1),
         min : 0, max : 255,  value : 0,
         handleSpan : 32,
-        decimalPlaces:0,digets:3,
+        decimalPlaces:0,digits:3,
         wheelStep : 6,            
         group:group,
         ondrag : undefined,
         toolTip:"Red channel value",
         style : sliderStyle,
+        showValue : false,
         styleID : groover.utils.IDS.getID(),
         ondrag : function(){
+            
+            owner.text.marked["redValue"] = Math.floor(group.getNamedUI("redSlide").value);
+            owner.text.marked["greenValue"] = Math.floor(group.getNamedUI("greenSlide").value);
+            owner.text.marked["blueValue"] = Math.floor(group.getNamedUI("blueSlide").value);
+            owner.text.marked["alphaValue"] = Math.floor(group.getNamedUI("alphaSlide").value);
+            owner.dirty = true;
             owner.updated = true;
         },
     }
-    var greenSlider =  copy(redSlider,{y :yp+35,toolTip:"Green channel value"});
-    var blueSlider =  copy(redSlider,{y :yp+70,toolTip:"Blue channel value"});
-    var alphaSlider =  copy(redSlider,{y :yp+105,toolTip:"Alpha channel value"});
+    var greenSlider =  copy(redSlider,{y :yp+ySpace,toolTip:"Green channel value"});
+    var blueSlider =  copy(redSlider,{y :yp+ySpace*2,toolTip:"Blue channel value"});
+    var alphaSlider =  copy(redSlider,{y :yp+ySpace*3,toolTip:"Alpha channel value"});
     var t = this;
     var okButton = {
-        x: 10,y: -10,height : 30, minWidth : 100,
+        x: 10,y: yp+ySpace*5,height : 30, minWidth : 100,
         text : "OK",
         toolTip :"Accept and close dialog",
         onclick : function(){
@@ -175,7 +184,7 @@ GifViewer.prototype.createUI = function(){
     this.alert = UI.createUI("UIAlerts","myAlert",{
             x:"center",y:"center",
             buttonStyles :{
-                button : groover.utils.namedStyles.UIAlertButton,
+                main : groover.utils.namedStyles.UIAlertButton,
                 hover : groover.utils.namedStyles.UIAlertButtonHover,
                 click : groover.utils.namedStyles.UIAlertButtonClick,
             },
@@ -192,8 +201,9 @@ GifViewer.prototype.createUI = function(){
     var sliderDetails = {
             min : 0, max : 100, value : 0, handleSpan : 0.01,
             x : 240, y : -8, width : -10,
-            decimalPlaces : 2, digits : 3, digets : 3,wheelStep : 0.25,            // digets and digit are the same need to remove digets when I get time
+            decimalPlaces : 2, digits : 3,wheelStep : 0.25,            
             group : this.mainUI,
+            useSpriteNumbers : false,
             ondrag : this.setPause.bind(this),
             toolTip:"Drag slider to set the time.\nUse the mouse wheel to\nstep quarter seconds." 
     };
@@ -216,7 +226,7 @@ GifViewer.prototype.createUI = function(){
     by-= bys;
     var colour = copy(fit,{y : by, text : "Color", onclick : this.openColourDialog.bind(this), toolTip :"Text the dialalog container UI element"});
     by-= bys;
-    var checkFade = copy(fit,{y : -50, text : "Use frame fade.", onclick : undefined, toolTip :"If checked this will add the next frame\nwith a part fade to smooth\ngifs with low frame rates."});
+    var checkFade = copy(fit,{y : -50, text : "Use frame fade.",keepOpen : true, onclick : undefined, toolTip :"If checked this will add the next frame\nwith a part fade to smooth\ngifs with low frame rates."});
     
     this.slider = UI.createUI("UISlider","slider",sliderDetails);
     UI.createUI("UIButton", "fitView", fit);

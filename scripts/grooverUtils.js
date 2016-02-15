@@ -460,6 +460,35 @@ groover.utils.namedStyles = {
 // for creating styles.
 groover.utils.styles = {    
     attributes : "inset,fontSize,fontColour,fillStyle,strokeStyle,lineWidth,lineJoin,lineCap,font,textAlign,textBaseline,miterLimit".split(","),
+    DEFAULT : groover.utils.namedStyles.DEFAULT,
+    // Some situations require text to be messure so that the correct sized
+    // canvas can be created. As the text needs a canvas to messure this
+    // work canvas is a canvas and context that can be used by any 
+    // code to do things like measure text
+    workCanvas : (function(){
+        var workCanvas = document.createElement("canvas");
+        workCanvas.width = 10;
+        workCanvas.height = 10;
+        workCanvas.ctx = workCanvas.getContext("2d");    
+        return workCanvas;
+    })(),
+    measureText : function ( text, style ){
+        this.assignFontToContext(this.workCanvas.ctx,style);
+        return this.workCanvas.ctx.measureText(text);        
+    },
+    measureTextArr : function ( textArr, style ){ // text is an array
+        var i, len,min,max,width;
+        min = Infinity;
+        max = -Infinity;
+        len = textArr.length;
+        this.assignFontToContext(this.workCanvas.ctx,style);
+        for(i = 0; i < len ; i ++){
+            width = this.workCanvas.ctx.measureText(text).width;
+            min = Math.min(min,width);
+            max = Math.max(max,width);
+        }
+        return {min:min,max:max};
+    },
     setFontStyle : function ( style, font, fontSize, fontColour,textAlign, textBaseline ){
         style.font = font === null || font === undefined ? style.font : font;
         style.fontSize = fontSize === null || fontSize === undefined ? style.fontSize : fontSize;
@@ -478,6 +507,9 @@ groover.utils.styles = {
         
     },
     assignToContext : function ( ctx, style) {
+        if(style === undefined){
+            style = this.DEFAULT;
+        }
         ctx.fillStyle    = style.fillStyle;
         ctx.strokeStyle  = style.strokeStyle;
         if(style.lineWidth === 0){
@@ -495,12 +527,18 @@ groover.utils.styles = {
         // fontSize          
     },
     assignFontToContext : function ( ctx, style) {
+        if(style === undefined){
+            style = this.DEFAULT;
+        }
         ctx.fillStyle    = style.fontColour;
         ctx.font         = style.fontSize + "px "+style.font;
         ctx.textAlign    = style.textAlign;
         ctx.textBaseline = style.textBaseline;
     },
     assignDrawToContext : function ( ctx, style) {
+        if(style === undefined){
+            style = this.DEFAULT;
+        }
         ctx.fillStyle    = style.fillStyle;
         ctx.strokeStyle  = style.strokeStyle;
         if(style.lineWidth === 0){
@@ -515,12 +553,13 @@ groover.utils.styles = {
     },
     setDefultStyle : function ( style ) {
         groover.utils.namedStyles.DEFAULT = style;
+        this.DEFAULT = style;
         return style;
     },
     validateStyle : function ( style ) {
         for (var i = 0; i < this.attributes.length; i++) {
             if(style[this.attributes[i]] === null || style[this.attributes[i]] === undefined){
-                style[this.attributes[i]] = groover.utils.namedStyles.DEFAULT[this.attributes[i]];
+                style[this.attributes[i]] = this.DEFAULT[this.attributes[i]];
             }
         }
         return style;        
@@ -529,7 +568,7 @@ groover.utils.styles = {
         var cStyle = {};
         for (var i = 0; i < this.attributes.length; i++) {
             if(style[this.attributes[i]] === null || style[this.attributes[i]] === undefined){
-                cStyle[this.attributes[i]] = groover.utils.namedStyles.DEFAULT[this.attributes[i]];
+                cStyle[this.attributes[i]] = this.DEFAULT[this.attributes[i]];
             }else{
                 cStyle[this.attributes[i]] = style[this.attributes[i]];
             }
@@ -581,6 +620,23 @@ groover.utils.styles = {
         return style;
         
     },    
+    createNamedStylesFromList : function(list){
+        var i, j, st;
+        for(i = 0; i < list; i ++){
+            st = list[i];
+            j = 0;
+            if(groover.utils.namedStyles[st[j+1]] === undefined){
+                if(st[j++] === "font"){
+                    this.createFontStyle(st[j++],st[j++],st[j++],st[j++]);
+                }else{
+                    this.createDrawStyle(st[j++], st[j++], st[j++], st[j++], st[j++], st[j++]);
+                }
+            }
+        }
+    }
+        
+        
+
 }
 
 groover.utils.language = {

@@ -872,6 +872,44 @@ UI.prototype.UIGroup = function(name,settings,owner){
     ui.location = this.createLocationInterface(ui);
     return ui;
 }
+UI.prototype.defaultUpdate = function(){
+    var mouse;
+    if (this.ready) {
+        mouse = this.mouse;
+        mouse.isMouseOver();
+        if(mouse.mouse.mousePrivate === mouse.id){
+            this.hover = true;
+            mouse.mouse.requestCursor("pointer", mouse.id);
+            if(mouse.mouse.B1 && ! mouse.hold){
+                mouse.holdMouse();
+                this.clicking = true;                            
+                this.holding = true;
+            }
+            if(mouse.hold && mouse.mouse.oldB1 && !mouse.mouse.B1){
+                mouse.mouse.oldB1 = false;
+                mouse.releaseMouse();
+                if(mouse.over && this.holding){
+                    this.clicking = false;
+                    this.clicked();
+                    if(typeof this.onclick === "function"){
+                        this.onclick(this);
+                    }                                
+                }
+                this.holding = false;
+            }
+            if(!mouse.overReal && mouse.hold){
+                this.holding = false;
+                this.clicking = false;                        
+            }            
+        }else{
+            this.hover = false;
+            this.clicking = false;                        
+        }
+        if(this.dirty){
+            this.redraw();
+        }
+    }
+}
 UI.prototype.addUIDefaults = function(UI,owner,name,settings){
     this.owner = owner;
     this.name = name;
@@ -881,12 +919,25 @@ UI.prototype.addUIDefaults = function(UI,owner,name,settings){
     this.dirty = true;
     this.canvas = undefined;
     this.settings = settings;
-    settings.minWidth  = settings.minWidth !== undefined ? settings.minWidth : 200
-    settings.minHeight = settings.minHeight !== undefined ? settings.minHeight : 200
+    this.style = this.style === undefined?settings.style:this.style;
+    this.minWidth = settings.minWidth  = settings.minWidth !== undefined ? settings.minWidth : 200
+    this.minHeight = settings.minHeight = settings.minHeight !== undefined ? settings.minHeight : 200
     this.width = settings.width !== undefined ? settings.width : settings.minWidth;
     this.height = settings.height !== undefined ? settings.height : settings.minHeight;
     this.x = settings.x;
     this.y = settings.y;    
+    if(this.update === undefined){
+        this.clicking = false;
+        this.holding = false;
+        this.hover = false;
+        this.clickingVal = 0;
+        this.hoverVal = 0;
+        if(this.clicked === undefined){
+            this.clicked = function(){};
+        }
+        this.update = UI.defaultUpdate.bind(this);
+        log("added update");
+    }
     this.group = settings.group;
     this.mouse = UI.createMouseInterface(this);            
     this.location = UI.createLocationInterface(this, settings.group);
@@ -896,6 +947,22 @@ UI.prototype.addUIDefaults = function(UI,owner,name,settings){
     }
     this.update();
     this.ready = true;
+}
+UI.prototype.setupStyleDefaults = function(who,defs){
+    var i,st;
+    if(who.style === undefined){
+        who.style = {};
+    }
+    for(i = 0; i < defs.length; i ++){
+        st = defs[i];
+        if(who.style[st[0]] === undefined){
+            if(st[2] === "copy"){
+                who.style[st[0]] = groover.utils.styles.copyStyle(groover.utils.namedStyles[st[1]]);
+            }else{
+                who.style[st[0]] = groover.utils.namedStyles[st[1]];
+            }
+        }
+    }
 }
 // stub function is used to fill missing UI moduals and stop the system crashing 
 // the stub does nothing

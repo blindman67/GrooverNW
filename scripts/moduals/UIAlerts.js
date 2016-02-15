@@ -198,13 +198,13 @@
                 if(this.active){                    
                     this.group.mouse.isMouseOver();
                     this.group.update();             
-                }
-            },
-            display : function(){
-                if(this.active){                    
                     if(this.dirty){
                         this.redraw();
                     }
+                }
+            },
+            display : function(){                
+                if(this.active){                    
                     if(this.show && this.showTimer < 1){
                         this.showTimer += 0.08;
                         if(this.showTimer > 1){
@@ -237,7 +237,6 @@
         }
         if(textRender === undefined){
             textRender = groover.code.load("textRender");
-            
         }
         if(groover.utils.namedStyles.UIAlertStyle === undefined){
             groover.utils.styles.createFontStyle("UIAlertStyle","arial",20,"black","center","hanging");

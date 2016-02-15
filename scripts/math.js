@@ -105,11 +105,12 @@ var mMath = {
         };
     },
     // value and number displays
-    pads : ['','0','00','000','0000','00000','000000'],
+    pads : ['','0','00','000','0000','00000','000000','0000000','00000000','000000000'],
     padNumber : function(num,pad){
         if(pad <= 1){
             return num;
         }
+        pad = Math.min(this.pads.length-1,pad);
         if(num === "string"){
             num = Number(num);
         }

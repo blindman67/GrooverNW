@@ -35,7 +35,7 @@
                     if(icon.h === undefined){
                         icon.h = icon.images[0].image.height;
                     }
-                    icon.id = settings.icons[i].id;
+                    icon.id = this.icons[i].id;
                     icon.position = this.location.add(icon.x,icon.y,icon.w,icon.h,icon.id,i);
                 }
             },
@@ -79,16 +79,18 @@
                 }
             },
             display : function () {
-                var l = this.location;
-                var m = this.mouse;
-                if(l.alpha > 0){
-                    for(var i = 0 ; i < this.icons.length; i++){
-                        var icon = this.icons[i];
-                        var p = icon.position;
-                        if(m.positionsIndex === i && (m.mouse.mousePrivate === 0 || m.mouse.mousePrivate === m.id) ){
-                            this.owner.render.drawBitmapSize(icon.images[0].image,p.x,p.y,p.w,p.h,icon.alpha * l.alpha);
-                        }else{
-                            this.owner.render.drawBitmapSize(icon.images[1].image,p.x,p.y,p.w,p.h,icon.alpha * l.alpha);
+                var l, m, icon, p, i, R;
+                R = this.owner.render;
+                l = this.location;
+                m = this.mouse;
+                if (l.alpha > 0) {
+                    for (i = 0; i < this.icons.length; i++) {
+                        icon = this.icons[i];
+                        p = icon.position;
+                        if (m.positionsIndex === i && (m.mouse.mousePrivate === 0 || m.mouse.mousePrivate === m.id)) {
+                            R.drawBitmapSize(icon.images[0].image, p.x, p.y, p.w, p.h, icon.alpha * l.alpha);
+                        } else {
+                            R.drawBitmapSize(icon.images[1].image, p.x, p.y, p.w, p.h, icon.alpha * l.alpha);
                         }
                     }
                 }

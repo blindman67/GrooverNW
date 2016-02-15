@@ -6,6 +6,7 @@ function Bitmaps(owner){
     this.imageGroups = {};
     this.iEvent = this.imageEvent.bind(this);
     this.imageProcessor = imageProcessing;
+
     this.ready = true;
     log("Bitmap manager ready");
 }

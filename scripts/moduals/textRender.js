@@ -15,6 +15,7 @@
             BIG : ids ++, // {+   increase scale by 0.2
             SMALL : ids ++, // {-  decrease scale  by 0.1
             COLOR : ids ++, // {#FFF  Only supporting RGB short format. This will be expanded as the need arrises.
+            MARKED : ids ++, // Marked text field. 
             ALIGN : {
                 LEFT : ids ++,  // {AL
                 CENTER : ids ++,// {AC
@@ -74,6 +75,8 @@
             }
                         
             var segs = [];
+            var markedFields = {};
+            var currentMarked = "";
             var colourStack = [];
             var currentColour = ctx.fillStyle;
             var i,c;
@@ -146,6 +149,18 @@
                     if(c === "F"){
                         styles.push(this.STYLES.FILL);
                     }else
+                    if(c === "M"){
+                        styles.push(this.STYLES.MARKED);
+                        currentMarked = "";
+                        while(i < len-1 && c !== ":"){
+                            i ++;
+                            c = text[i];
+                            if(c !== ":"){
+                                currentMarked += c;
+                            }
+                        }
+                        
+                    }else                    
                     if(c === "+"){
                         styles.push(this.STYLES.BIG);
                         scaleX += 0.2;
@@ -191,6 +206,13 @@
                     newLine = false;
                     addSeg();
                     var ps = styles.pop();
+                    if(ps === this.STYLES.MARKED){
+                        var k = segs.length -1;
+                        markedFields[currentMarked] = segs[k].str;
+                        segs[k].marked = currentMarked;
+                        currentMarked = "";
+                        
+                    }else
                     if(ps === this.STYLES.COLOR){
                         currentColour = colourStack.pop();
                     }else
@@ -335,6 +357,7 @@
             return {
                 width : maxWidth,
                 height : lastLineAt,
+                marked : markedFields,
                 text : segs,
             }
         },
@@ -354,17 +377,21 @@
             ctx.textBaseline = "alphabetic";
             for(var i = 0; i < text.text.length; i ++){
                 var t = text.text[i];
+                var str = t.str;
+                if(t.marked !== undefined){
+                    str = text.marked[t.marked];
+                }
                 if(t.color !== lastCol){
                     ctx.fillStyle = t.color;
                     lastCol = t.color;
                 }
                 ctx.setTransform(t.sx,0,0,t.sy,t.x+ x,t.y+ y);
                 if(t.bold){
-                    ctx.fillText(t.str,-0.25,0);
-                    ctx.fillText(t.str,0.25,0);
+                    ctx.fillText(str,-0.25,0);
+                    ctx.fillText(str,0.25,0);
                     
                 }else{
-                    ctx.fillText(t.str,0,0);
+                    ctx.fillText(str,0,0);
                 }
             }
             ctx.setTransform(1,0,0,1,0,0);
