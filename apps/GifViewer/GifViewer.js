@@ -207,8 +207,8 @@ GifViewer.prototype.createUI = function(){
             ondrag : this.setPause.bind(this),
             toolTip:"Drag slider to set the time.\nUse the mouse wheel to\nstep quarter seconds." 
     };
-    var by = -86;
     var bys = 34;
+    var by = -50 - bys;
     var fit = {
             x: 10,y: by,height : 30,
             text : "Fit",
@@ -217,6 +217,10 @@ GifViewer.prototype.createUI = function(){
             group:this.mainUI,
             minWidth : 10,
     }
+    by-= bys;
+    var comboTest = copy(fit,{y : by, toolTip :"Combo box test control.\nThis control is still being\ndeveloped so has no\nreal function"});
+    comboTest.items = "blah blah balh,this and that,some or none,lots and lots,give that a go,dont try,do try,why not,this is just a test,one plus one,two plus two,the last word".split(",");
+        
     by-= bys;
     var fill = copy(fit,{y : by, text : "Fill", onclick : this.fillView.bind(this), toolTip :"Resets the view to fill the window."});
     by-= bys;
@@ -234,8 +238,9 @@ GifViewer.prototype.createUI = function(){
     UI.createUI("UIButton", "info"   , info);
     UI.createUI("UIButton", "save"   , save);
     UI.createUI("UIButton", "colour" , colour);
+    this.comboTest = UI.createUI("UIComboBox", "comboTest" , comboTest);
     this.checkFade = UI.createUI( "UICheckBox", "checkBox1",checkFade);
-
+    this.comboTest.selectItem(0);
     var bx = -35;
     var h = 32;
     var w = 40;
@@ -792,6 +797,7 @@ GifViewer.prototype.display = function(){
         this.render.drawText(info,this.view.width/2,10);
 
     }
+      this.comboTest.selectItem(Math.floor(Math.random()*10));
     if(this.colourDialog !== undefined){
         if(this.colourDialog.active){
             this.colourDialog.update();

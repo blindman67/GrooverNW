@@ -936,7 +936,6 @@ UI.prototype.addUIDefaults = function(UI,owner,name,settings){
             this.clicked = function(){};
         }
         this.update = UI.defaultUpdate.bind(this);
-        log("added update");
     }
     this.group = settings.group;
     this.mouse = UI.createMouseInterface(this);            

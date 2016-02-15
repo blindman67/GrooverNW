@@ -167,6 +167,7 @@ groover.code = {
             var script = $C('script');
             script.async = true;
             script.text = modual;
+            script.id = name + groover.utils.IDS.getID();
             $A($TN('head')[0],script);
             if(this.parsed){
                 groover.appDescription = appDescription;
@@ -211,6 +212,7 @@ groover.code = {
             var script = $C('script');
             script.async = true;
             script.text = modual;
+            script.id = name + groover.utils.IDS.getID();
             $A($TN('head')[0],script);
             if(this.parsed && this.moduals[name] !== undefined){
                 if(this.moduals[name].configure !== undefined){
@@ -476,14 +478,14 @@ groover.utils.styles = {
         this.assignFontToContext(this.workCanvas.ctx,style);
         return this.workCanvas.ctx.measureText(text);        
     },
-    measureTextArr : function ( textArr, style ){ // text is an array
+    measureTextArray : function ( textArr, style ){ // text is an array
         var i, len,min,max,width;
         min = Infinity;
         max = -Infinity;
         len = textArr.length;
         this.assignFontToContext(this.workCanvas.ctx,style);
         for(i = 0; i < len ; i ++){
-            width = this.workCanvas.ctx.measureText(text).width;
+            width = this.workCanvas.ctx.measureText(textArr[i]).width;
             min = Math.min(min,width);
             max = Math.max(max,width);
         }
@@ -622,7 +624,7 @@ groover.utils.styles = {
     },    
     createNamedStylesFromList : function(list){
         var i, j, st;
-        for(i = 0; i < list; i ++){
+        for(i = 0; i < list.length; i ++){
             st = list[i];
             j = 0;
             if(groover.utils.namedStyles[st[j+1]] === undefined){
