@@ -8,6 +8,7 @@ function Render(owner){
     log("Render manager ready");
 
     var ctx;
+    this.ctx;
     var lastFont = "";
     var lastFill = "";
     var lastStroke = "";
@@ -16,7 +17,7 @@ function Render(owner){
     var sources = "source-over,lighter,darker,source-atop,source-in,source-out,destination-over,destination-atop,destination-in,destination-out,copy,xor,multiply,screen,overlay,color-dodge,color-burn,hard-light,soft-light,difference,exclusion,hue,saturation,color,luminosity".split(",");
 
     this.viewUpdated = function(){
-        ctx = this.view.ctx;
+        this.ctx = ctx = this.view.ctx;
         this.currentTarget = this.view;
         ctx.renderer = this;
         w = this.view.width;
@@ -46,11 +47,11 @@ function Render(owner){
     var globalAlpha = 1;
     this.pushCTX = function(ctxNew){
         ctx1.push(ctx);
-        ctx = ctxNew;
+        this.ctx = ctx = ctxNew;
         blendMode = 0;
     }
     this.popCTX = function(){
-        ctx = ctx1.shift();
+        this.ctx = ctx = ctx1.shift();
     }
     this.getCTX = function(){
         return ctx;
@@ -112,7 +113,11 @@ function Render(owner){
         ctx.imageSmoothingEnabled = val;         
     }
      
-    
+    this.restoreDefaults = function(){
+        ctx.globalCompositeOperation = "source-over";        
+        ctx.globalAlpha = 1;
+        ctx.setTransform(1, 0, 0, 1, 0,0);                
+    }
     
     this.drawBackground = function(img){
         ctx.globalAlpha = 1 * globalAlpha;

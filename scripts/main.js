@@ -51,6 +51,13 @@ if(DEBUG){
         moduals.push(this.render = new Render(this));
         moduals.push(this.ui = new UI(this));
         moduals.push(this.app = new groover.application(this));
+        // add frame work compnents to app.
+        this.app.animFrame      = this.app.animFrame    === undefined ? this.animFrame : this.app.animaFrame;
+        this.app.mouseKeyboard  = this.app.mouseKeyboard=== undefined ? this.mouseKeyboard : this.app.mouseKeyboard;
+        this.app.bitmaps        = this.app.bitmaps      === undefined ? this.bitmaps : this.app.bitmaps;
+        this.app.view           = this.app.view         === undefined ? this.view : this.app.view ;
+        this.app.render         = this.app.render       === undefined ? this.render : this.app.render;
+        this.app.ui             = this.app.ui           === undefined ? this.ui : this.app.ui;
         window.addEventListener("resize",this.resize.bind(this));
         var checkModuals = (function(){
             var i;
