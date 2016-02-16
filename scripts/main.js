@@ -58,6 +58,8 @@ if(DEBUG){
                 if(moduals[i].ready){
                     moduals.splice(i,1);
                     i -= 1;
+                }else{
+                    console.log("Waiting for modual :"+moduals[i].name);
                 }
             }
             if(moduals.length === 0){
@@ -72,8 +74,12 @@ if(DEBUG){
         groover.loader.progress(1);
         new DropManager(document.body, this.fileDropped.bind(this), [DropManager.prototype.mimeTypes.all],"first");
         this.animFrame.addFrameStartFunction(this.ui.update.bind(this.ui));
-        this.animFrame.addFrameStartFunction(this.app.update.bind(this.app));
-        this.animFrame.addFrameEndFunction(this.app.display.bind(this.app));
+        if(this.app.update !== undefined){
+            this.animFrame.addFrameStartFunction(this.app.update.bind(this.app));
+        }
+        if(this.app.display !== undefined){
+            this.animFrame.addFrameEndFunction(this.app.display.bind(this.app));
+        }
         this.animFrame.addFrameEndFunction(this.ui.display.bind(this.ui));
         this.animFrame.addFrameEndFunction(this.mouseKeyboard.doCursor.bind(this.mouseKeyboard));
         groover.busy = true;

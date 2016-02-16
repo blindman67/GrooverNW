@@ -1,0 +1,12 @@
+{
+    "applicationName" : "Sprite test",
+    "description" : "GrooverNW Application to test sprite API",
+    "version" : "1",
+    "styles" : [],
+    "JavaScript" : {
+         "scripts" : ["Sprites.js"], 
+         "moduals" : []                            
+    },
+    "settings" : {
+    }
+}

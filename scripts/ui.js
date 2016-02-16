@@ -8,6 +8,7 @@ function UI(owner){
     this.view = this.owner.view;
     this.icons = {};
     this.loadMedia();
+    this.name = "UI";
     this.ready = false;
     this.createCanvas = function(w,h){
         var can = document.createElement("canvas");

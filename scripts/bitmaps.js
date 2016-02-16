@@ -6,6 +6,7 @@ function Bitmaps(owner){
     this.imageGroups = {};
     this.iEvent = this.imageEvent.bind(this);
     this.imageProcessor = imageProcessing;
+    this.name = "Bitmaps";
 
     this.ready = true;
     log("Bitmap manager ready");
@@ -96,8 +97,10 @@ Bitmaps.prototype.updateGroup = function(group,image,status){
     group.loadingCount -= 1;
     if(group.loadingCount === 0){
         this.cleanImageGroup(group);
-        while(group.callbacks.length > 0){
-            group.callbacks.shift()(group);
+        if(group.callbacks !== undefined){
+            while(group.callbacks.length > 0){
+                group.callbacks.shift()(group);
+            }
         }
     }        
 }
@@ -139,7 +142,9 @@ Bitmaps.prototype.imageEvent = function(event){
 // Starts the liading of images to a group.
 Bitmaps.prototype.startLoad = function(group,callback){
     var imageGroup = this.getGroup(group);
-    imageGroup.callbacks.push(callback);
+    if(typeof callback === "function"){
+        imageGroup.callbacks.push(callback);
+    }
     if(imageGroup.loadingCount === 0){
         imageGroup.fresh = [];
     }

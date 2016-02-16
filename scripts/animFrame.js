@@ -22,6 +22,7 @@ function AnimFrame(owner){
         total : 0,
         average : 0,
     };
+    this.name = "AnimFrame";
     this.ready = true;
     log("Anim frame ready");
     

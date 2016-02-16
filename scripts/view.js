@@ -10,6 +10,7 @@ function View(owner){
     this.render;
     this.namedViews = {};
     this.refreshed = true;
+    this.name = "View";
     this.ready = true;
     this.mainViewName = "main";
     this.currentViewName = this.mainViewName;

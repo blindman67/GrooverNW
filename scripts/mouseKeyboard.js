@@ -75,6 +75,8 @@ function MouseKeyboard(owner){
     this.bm = [1, 2, 4, 6, 5, 3];
     this.butNames = ["B1","B2","B3"];
     this.over = false;
+    this.name = "MouseKeyboard";
+    
     this.ready = true;
     var mouseEventList = "mousemove,mousedown,mouseup,mouseout,mouseover,mousewheel".split(",");
     var keyEventList = ["keypress"];

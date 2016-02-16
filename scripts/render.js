@@ -2,6 +2,7 @@
 function Render(owner){
     this.owner = owner;
     this.view = this.owner.view;
+    this.name = "Render";    
     this.ready = true;
     this.currentTarget;
     log("Render manager ready");

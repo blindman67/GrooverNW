@@ -43,6 +43,8 @@ function GifViewer(owner){
     this.fadeUI = 1;
     this.fileList = [];
     this.createUI();
+    this.name = "GifViewer";
+
 }
 
 // create and display colour dialog 
