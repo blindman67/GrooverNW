@@ -735,6 +735,7 @@ UI.prototype.UIGroup = function(name,settings,owner){
         settings:settings,
         canvas : undefined,
         dirty : true,
+        focusedOn : undefined,
         items : [],
         updateList : [],
         displayList : [],
@@ -859,9 +860,20 @@ UI.prototype.UIGroup = function(name,settings,owner){
                 rend.drawBitmapSize(this.canvas,l.x,l.y,l.w,l.h,1);                
                 
             }else{
-                for(i = 0; i < len; i++){
-                    this.displayList[i].location.alpha = this.location.alpha;
-                    this.displayList[i].display();
+                if(this.focusedOn !== undefined){
+                    for(i = 0; i < len; i++){
+                        if(this.focusedOn.id !== this.displayList[i].id){
+                            this.displayList[i].location.alpha = this.location.alpha;
+                            this.displayList[i].display();
+                        }
+                    }
+                    this.focusedOn.location.alpha = this.location.alpha;
+                    this.focusedOn.display();
+                }else{
+                    for(i = 0; i < len; i++){
+                        this.displayList[i].location.alpha = this.location.alpha;
+                        this.displayList[i].display();
+                    }
                 }
             }
         },

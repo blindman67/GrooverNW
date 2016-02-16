@@ -217,9 +217,6 @@ GifViewer.prototype.createUI = function(){
             group:this.mainUI,
             minWidth : 10,
     }
-    by-= bys;
-    var comboTest = copy(fit,{y : by, toolTip :"Combo box test control.\nThis control is still being\ndeveloped so has no\nreal function"});
-    comboTest.items = "blah blah balh,this and that,some or none,lots and lots,give that a go,dont try,do try,why not,this is just a test,one plus one,two plus two,the last word".split(",");
         
     by-= bys;
     var fill = copy(fit,{y : by, text : "Fill", onclick : this.fillView.bind(this), toolTip :"Resets the view to fill the window."});
@@ -231,6 +228,9 @@ GifViewer.prototype.createUI = function(){
     var colour = copy(fit,{y : by, text : "Color", onclick : this.openColourDialog.bind(this), toolTip :"Text the dialalog container UI element"});
     by-= bys;
     var checkFade = copy(fit,{y : -50, text : "Use frame fade.",keepOpen : true, onclick : undefined, toolTip :"If checked this will add the next frame\nwith a part fade to smooth\ngifs with low frame rates."});
+    by-= bys;
+    var comboTest = copy(fit,{y : by, toolTip :"Combo box test control.\nThis control is still being\ndeveloped so has no\nreal function"});
+    comboTest.items = "blah blah balh,this and that,some or none,lots and lots,give that a go,dont try,do try,why not,this is just a test,one plus one,two plus two,the last word".split(",");
     
     this.slider = UI.createUI("UISlider","slider",sliderDetails);
     UI.createUI("UIButton", "fitView", fit);
@@ -759,7 +759,7 @@ GifViewer.prototype.display = function(){
 
 
 
-        if(this.time - this.MK.lastEventTime > 3*1000 || !this.MK.over){
+        if(this.MK.mousePrivate === 0 && (this.time - this.MK.lastEventTime > 3*1000 || !this.MK.over)){
             this.MK.requestCursor("none",0);
             if(this.fadeUI > 0){
                 this.fadeUI -= 0.1;
@@ -779,7 +779,7 @@ GifViewer.prototype.display = function(){
         }
         
         if(this.gifImage === undefined){
-            this.fadeUI = 0;
+           // this.fadeUI = 0;
         }
         //this.iconButtons.location.alpha = this.fadeUI;
         //this.slider.location.alpha = this.fadeUI;
@@ -797,7 +797,9 @@ GifViewer.prototype.display = function(){
         this.render.drawText(info,this.view.width/2,10);
 
     }
-      this.comboTest.selectItem(Math.floor(Math.random()*10));
+    if(Math.random() < 0.01){
+        this.comboTest.selectItem(Math.floor(Math.random()*10));
+    }
     if(this.colourDialog !== undefined){
         if(this.colourDialog.active){
             this.colourDialog.update();
