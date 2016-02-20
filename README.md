@@ -1,5 +1,7 @@
 #GROOVER NW
 
+### Current status: Upgrading and Totaly spannered... Upgrade will be complete by Monday morning.
+
 A nw.js based native app framework for realtime 2D graphics applications using canvas.
 
 ###THIS is very much a work in progress and is subject to change at any time.
